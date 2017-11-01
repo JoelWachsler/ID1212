@@ -38,6 +38,9 @@ public class NonBlockingInterpreter implements Runnable {
           case CONNECT:
             controller.connect("127.0.0.1", 8080, new ConsoleOutput());
             break;
+          case START:
+            controller.startGame();
+            break;
           case GUESS:
             controller.guess(cmdLine.getArg(0));
             break;

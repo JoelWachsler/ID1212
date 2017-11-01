@@ -35,15 +35,10 @@ class CmdLine {
     String[] splitText = enteredLine.split(PARAM_DELIMITER);
 
     switch (splitText[0].toUpperCase()) {
-      case "GUESS":
-        cmd = Command.GUESS;
-        break;
-      case "CONNECT":
-        cmd = Command.CONNECT;
-        break;
-      case "QUIT":
-        cmd = Command.QUIT;
-        break;
+      case "GUESS":   cmd = Command.GUESS;    break;
+      case "START":   cmd = Command.START;    break;
+      case "CONNECT": cmd = Command.CONNECT;  break;
+      case "QUIT":    cmd = Command.QUIT;     break;
       default:
         throw new InvalidCommandException("The command \"" + splitText[0].toLowerCase() + "\" is not a valid command!");
     }

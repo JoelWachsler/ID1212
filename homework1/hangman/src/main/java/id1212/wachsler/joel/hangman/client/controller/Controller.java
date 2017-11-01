@@ -2,7 +2,6 @@ package id1212.wachsler.joel.hangman.client.controller;
 
 import id1212.wachsler.joel.hangman.client.net.OutputHandler;
 import id1212.wachsler.joel.hangman.client.net.ServerConnection;
-import id1212.wachsler.joel.hangman.common.MsgType;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -21,17 +20,25 @@ public class Controller {
     }).thenRun(() -> outputHandler.handleMsg("Connected to " + host + ":" + port));
   }
 
-  public void sendMsg(String msg) {
-    // Send message async
-    CompletableFuture.runAsync(() -> serverConnection.sendChatEntry(msg));
-  }
-
+  /**
+   * @see ServerConnection#disconnect()
+   */
   public void disconnect() throws IOException {
     serverConnection.disconnect();
   }
 
+  /**
+   * @see ServerConnection#sendGuess(String)
+   */
   public void guess(String guessingWord) {
     // Send async guess
     CompletableFuture.runAsync(() -> serverConnection.sendGuess(guessingWord));
+  }
+
+  /**
+   * @see ServerConnection#startGame()
+   */
+  public void startGame() {
+    CompletableFuture.runAsync(serverConnection::startGame);
   }
 }

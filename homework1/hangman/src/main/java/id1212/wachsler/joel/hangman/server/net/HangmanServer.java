@@ -12,15 +12,43 @@ import java.util.List;
 public class HangmanServer {
   private static final int LINGER_TIME = 5000; // Time to keep on sending if the connection is closed
   private static final int SOCKET_TIMEOUT = 1800000; // Set socket timeout to half a minute
-  private final Controller controller = new Controller();
-  private final int PORT = 8080; // Server listening port
+  private Controller controller;
+  private static int port = 8080; // Server listening port
+  private static String wordPath = "./words.txt";
   private final List<ClientHandler> clients = new ArrayList<>();
+
+  HangmanServer(Controller controller) {
+    this.controller = controller;
+  }
 
   public static void main(String[] args) {
     System.out.println("HangmanServer started!");
 
-    HangmanServer server = new HangmanServer();
+    parseArgs(args);
+    HangmanServer server = new HangmanServer(new Controller(wordPath));
     server.serve();
+  }
+
+  private static void parseArgs(String[] args) {
+    if (args.length < 1) return;
+
+    for (String arg : args) {
+      String[] split = arg.split("=");
+      switch (split[0].toUpperCase()) {
+        case "PORT":
+          try {
+            port = Integer.parseInt(split[1]);
+          } catch (NumberFormatException e) {
+            System.err.printf("\"%s\" is not a valid port number!", split[1]);
+          }
+          break;
+        case "WORDS":
+          wordPath = split[1];
+          break;
+        default:
+          System.err.printf("\"%s\" is not a valid argument!", split[0]);
+      }
+    }
   }
 
   private void startClientHandler(Socket client) throws SocketException {
@@ -29,7 +57,7 @@ public class HangmanServer {
     client.setSoLinger(true, LINGER_TIME); // Set linger time
     client.setSoTimeout(SOCKET_TIMEOUT); // Set socket timeout
 
-    ClientHandler handler = new ClientHandler(this, client);
+    ClientHandler handler = new ClientHandler(this, client, controller);
     synchronized (clients) {
       clients.add(handler);
     }
@@ -45,7 +73,7 @@ public class HangmanServer {
   }
 
   private void serve() {
-    try (ServerSocket socket = new ServerSocket(PORT)) {
+    try (ServerSocket socket = new ServerSocket(port)) {
       // Continuously listen for incoming client connections
       while (true) {
         System.out.println("Listening...");

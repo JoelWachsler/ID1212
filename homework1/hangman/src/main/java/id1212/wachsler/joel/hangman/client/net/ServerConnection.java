@@ -22,6 +22,7 @@ public class ServerConnection {
   private PrintWriter toServer;
   private BufferedReader fromServer;
   private volatile boolean connected;
+  private OutputHandler outputHandler;
 
   /**
    * Connects to the specified server
@@ -32,6 +33,7 @@ public class ServerConnection {
    * @throws IOException
    */
   public void connect(String host, int port, OutputHandler broadcastHandler) throws IOException {
+    this.outputHandler = broadcastHandler;
     socket = new Socket();
     socket.connect(new InetSocketAddress(host, port), SOCKET_TIMEOUT);
     socket.setSoTimeout(SOCKET_TIMEOUT);
@@ -40,10 +42,6 @@ public class ServerConnection {
     toServer = new PrintWriter(socket.getOutputStream(), autoFlush);
     fromServer = new BufferedReader(new InputStreamReader(socket.getInputStream()));
     new Thread(new Listener(broadcastHandler)).start();
-  }
-
-  public void sendChatEntry(String msg) {
-    sendMsg(MsgType.ENTRY.toString(), msg);
   }
 
   /**
@@ -77,8 +75,16 @@ public class ServerConnection {
    * @param guessingWord The word or letter to guess
    */
   public void sendGuess(String guessingWord) {
-    System.out.println("Sending a guess!");
+    outputHandler.handleMsg("Sending a guess!");
     sendMsg(MsgType.GUESS.toString(), guessingWord);
+  }
+
+  /**
+   * Sends a start message to the server
+   */
+  public void startGame() {
+    outputHandler.handleMsg("Starting a new game!");
+    sendMsg(MsgType.START.toString());
   }
 
   private class Listener implements Runnable {
@@ -97,13 +103,14 @@ public class ServerConnection {
       } catch (Throwable connectionFailure) {
         if (connected) {
           outputHandler.handleMsg("Lost connection...");
+          connectionFailure.printStackTrace();
         }
       }
     }
 
     private String extractMsgBody(String entireMsg) {
       String[] msgParts = entireMsg.split(Constants.MSG_DELIMITER);
-      if (MsgType.valueOf(msgParts[Constants.MSG_TYPE_INDEX].toUpperCase()) != MsgType.BROADCAST) {
+      if (MsgType.valueOf(msgParts[Constants.MSG_TYPE_INDEX].toUpperCase()) != MsgType.GUESS_RESPONSE) {
         throw new MessageException("A corrupt message was received: " + entireMsg);
       }
       return msgParts[Constants.MSG_BODY_INDEX];

@@ -5,6 +5,10 @@ package id1212.wachsler.joel.hangman.client.view;
  */
 public enum Command {
   /**
+   * Start
+   */
+  START,
+  /**
    * Guess a letter or the whole word
    */
   GUESS,
