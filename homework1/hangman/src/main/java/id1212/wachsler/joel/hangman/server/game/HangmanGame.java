@@ -5,14 +5,9 @@ import id1212.wachsler.joel.hangman.server.controller.Controller;
 import java.util.Arrays;
 
 public class HangmanGame {
-  private final Controller controller;
   private int score = 0;
   private int tries = 7;
   private HangmanGameInstance gameInstance;
-
-  public HangmanGame(Controller controller) {
-    this.controller = controller;
-  }
 
   public int getTries() {
     return tries;
@@ -46,7 +41,7 @@ public class HangmanGame {
   }
 
   private class HangmanGameInstance {
-    private final char[] word = controller.getRandomWord().toCharArray();
+    private final char[] word = WordList.getInstance().getRandomWord().toCharArray();
     private char[] wordGuess;
     private boolean correctWord;
 

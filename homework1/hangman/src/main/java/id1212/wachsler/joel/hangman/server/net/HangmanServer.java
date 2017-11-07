@@ -12,20 +12,14 @@ import java.util.List;
 public class HangmanServer {
   private static final int LINGER_TIME = 5000; // Time to keep on sending if the connection is closed
   private static final int SOCKET_TIMEOUT = 1800000; // Set socket timeout to half a minute
-  private Controller controller;
   private static int port = 8080; // Server listening port
-  private static String wordPath = "./words.txt";
   private final List<ClientHandler> clients = new ArrayList<>();
-
-  HangmanServer(Controller controller) {
-    this.controller = controller;
-  }
 
   public static void main(String[] args) {
     System.out.println("HangmanServer started!");
 
     parseArgs(args);
-    HangmanServer server = new HangmanServer(new Controller(wordPath));
+    HangmanServer server = new HangmanServer();
     server.serve();
   }
 
@@ -42,9 +36,6 @@ public class HangmanServer {
             System.err.printf("\"%s\" is not a valid port number!", split[1]);
           }
           break;
-        case "WORDS":
-          wordPath = split[1];
-          break;
         default:
           System.err.printf("\"%s\" is not a valid argument!", split[0]);
       }
@@ -57,7 +48,7 @@ public class HangmanServer {
     client.setSoLinger(true, LINGER_TIME); // Set linger time
     client.setSoTimeout(SOCKET_TIMEOUT); // Set socket timeout
 
-    ClientHandler handler = new ClientHandler(this, client, controller);
+    ClientHandler handler = new ClientHandler(this, client);
     synchronized (clients) {
       clients.add(handler);
     }

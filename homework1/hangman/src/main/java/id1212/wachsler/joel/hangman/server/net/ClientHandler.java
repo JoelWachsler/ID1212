@@ -4,7 +4,6 @@ import id1212.wachsler.joel.hangman.common.Constants;
 import id1212.wachsler.joel.hangman.common.MessageException;
 import id1212.wachsler.joel.hangman.common.MsgType;
 import id1212.wachsler.joel.hangman.server.controller.Controller;
-import id1212.wachsler.joel.hangman.server.game.HangmanGame;
 
 import java.io.*;
 import java.net.Socket;
@@ -19,12 +18,12 @@ public class ClientHandler implements Runnable {
   private BufferedReader fromClient;
   private PrintWriter toClient;
   private boolean connected;
-  private final HangmanGame game;
+  private Controller controller = new Controller();
 
-  ClientHandler(HangmanServer server, Socket clientSocket, Controller controller) {
+  ClientHandler(HangmanServer server, Socket clientSocket) {
     this.server = server;
     this.clientSocket = clientSocket;
-    game = new HangmanGame(controller);
+    controller.newHangmanGame();
     connected = true;
   }
 
@@ -48,11 +47,11 @@ public class ClientHandler implements Runnable {
           case GUESS:
             System.out.println("Got a message!");
             System.out.println("The message is: " + msg.msgBody);
-            sendGuessResponse(game.guess(msg.msgBody), game.getTries(), game.getScore());
+            sendGuessResponse(controller.guess(msg.msgBody), controller.getTries(), controller.getScore());
             break;
           case START:
             System.out.println("The client wants to start a new game instance!");
-            game.newGameInstance();
+            controller.newHangmanGame();
             break;
           case DISCONNECT:
             disconnectClient();
@@ -72,8 +71,8 @@ public class ClientHandler implements Runnable {
 
     sendMsg(
       MsgType.GUESS_RESPONSE.toString(),
-      "Word: " + String.valueOf(guess) + " | " +
-        "Remaining failed attempts: " + tries + " | " +
+      "Word: " + String.valueOf(guess) + ", " +
+        "Remaining failed attempts: " + tries + ", " +
         "Score: " + score
     );
   }

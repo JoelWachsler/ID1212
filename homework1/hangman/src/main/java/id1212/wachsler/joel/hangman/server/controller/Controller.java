@@ -1,27 +1,28 @@
 package id1212.wachsler.joel.hangman.server.controller;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.List;
-import java.util.Random;
-import java.util.stream.Collectors;
+import id1212.wachsler.joel.hangman.server.game.HangmanGame;
 
 public class Controller {
-  private List<String> words;
-  private Random random = new Random();
+  private static String wordPath;
+  private HangmanGame game;
 
-  public Controller(String wordPath) {
-    try (BufferedReader reader = Files.newBufferedReader(Paths.get(wordPath))) {
-      words = reader.lines().collect(Collectors.toList());
-    } catch (IOException e) {
-      System.err.printf("Failed to read the file \"%s\"", wordPath);
-      e.printStackTrace();
-    }
+  public void setWordPath(String wordPath) {
+    Controller.wordPath = wordPath;
   }
 
-  public String getRandomWord() {
-    return words.get(random.nextInt(words.size()));
+  public void newHangmanGame() {
+    game = new HangmanGame();
+  }
+
+  public char[] guess(String msgBody) {
+    return game.guess(msgBody);
+  }
+
+  public int getTries() {
+    return game.getTries();
+  }
+
+  public int getScore() {
+    return game.getScore();
   }
 }
