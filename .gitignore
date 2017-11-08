@@ -26,5 +26,8 @@ report/
 *.pdf
 *.tex
 
+# KDE
+.directory
+
 ### Intellij ###
-.idea
+.idea/
