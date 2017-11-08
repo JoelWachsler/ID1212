@@ -13,15 +13,7 @@ public class Controller {
     game.newGameInstance();
   }
 
-  public char[] guess(String msgBody) {
+  public String guess(String msgBody) {
     return game.guess(msgBody);
-  }
-
-  public int getTries() {
-    return game.getTries();
-  }
-
-  public int getScore() {
-    return game.getScore();
   }
 }

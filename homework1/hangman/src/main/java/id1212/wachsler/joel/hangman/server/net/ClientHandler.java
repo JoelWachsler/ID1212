@@ -42,7 +42,7 @@ public class ClientHandler implements Runnable {
           case GUESS:
             System.out.println("Got a message!");
             System.out.println("The message is: " + msg.getBody());
-            sendGuessResponse(controller.guess(msg.getBody()), controller.getTries(), controller.getScore());
+            sendGuessResponse(controller.guess(msg.getBody()));
             break;
           case START:
             System.out.println("The client wants to start a new game instance!");
@@ -61,15 +61,10 @@ public class ClientHandler implements Runnable {
     }
   }
 
-  private void sendGuessResponse(char[] guess, int tries, int score) throws IOException {
-    if (guess == null) return;
+  private void sendGuessResponse(String response) throws IOException {
+    if (response == null) return;
 
-    sendMsg(
-      MsgType.GUESS_RESPONSE,
-      "Word: " + String.valueOf(guess) + ", " +
-        "Remaining failed attempts: " + tries + ", " +
-        "Score: " + score
-    );
+    sendMsg(MsgType.GUESS_RESPONSE, response);
   }
 
   /**

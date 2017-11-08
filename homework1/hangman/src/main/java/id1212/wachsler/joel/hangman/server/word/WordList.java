@@ -24,11 +24,15 @@ public class WordList {
     }
   }
 
-  public static WordList getInstance() {
+  private static WordList getInstance() {
     return instance;
   }
 
-  public String getRandomWord() {
+  public static String getRandomWord() {
+    return getInstance().randomWord();
+  }
+
+  private String randomWord() {
     return words.get(random.nextInt(words.size()));
   }
 }

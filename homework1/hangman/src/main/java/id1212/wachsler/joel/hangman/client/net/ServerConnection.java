@@ -38,10 +38,20 @@ public class ServerConnection {
   }
 
   /**
+   * Sends a message to the server without a body
+   */
+  private void sendMsg(MsgType type) throws IOException {
+    send(new Message(type, ""));
+  }
+
+  /**
    * Encapsulates the message and sends it to the server.
    */
   private void sendMsg(MsgType type, String body) throws IOException {
-    Message message = new Message(type, body);
+    send(new Message(type, body));
+  }
+
+  private void send(Message message) throws IOException {
     toServer.writeObject(message);
     toServer.flush(); // Flush the pipe
     toServer.reset(); // Remove object cache
@@ -53,7 +63,7 @@ public class ServerConnection {
    * @throws IOException
    */
   public void disconnect() throws IOException {
-    sendMsg(MsgType.DISCONNECT, "");
+    sendMsg(MsgType.DISCONNECT);
     socket.close();
     socket = null;
     connected = false;
@@ -65,7 +75,6 @@ public class ServerConnection {
    * @param guessingWord The word or letter to guess
    */
   public void sendGuess(String guessingWord) throws IOException {
-    outputHandler.handleMsg("Sending a guess!");
     sendMsg(MsgType.GUESS, guessingWord);
   }
 
@@ -73,8 +82,7 @@ public class ServerConnection {
    * Sends a start message to the server
    */
   public void startGame() throws IOException {
-    outputHandler.handleMsg("Starting a new game!");
-    sendMsg(MsgType.START, "");
+    sendMsg(MsgType.START);
   }
 
   private class Listener implements Runnable {
@@ -94,7 +102,7 @@ public class ServerConnection {
         }
       } catch (Throwable connectionFailure) {
         if (connected) {
-          outputHandler.handleMsg("Lost connection...");
+          outputHandler.handleMsg("Connection lost to the server...");
         }
       }
     }

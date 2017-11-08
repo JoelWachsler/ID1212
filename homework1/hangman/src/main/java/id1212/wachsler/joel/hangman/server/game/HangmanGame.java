@@ -3,19 +3,13 @@ package id1212.wachsler.joel.hangman.server.game;
 import id1212.wachsler.joel.hangman.server.word.WordList;
 
 import java.util.Arrays;
+import java.util.StringJoiner;
 
 public class HangmanGame {
   private int score = 0;
-  private int tries = 7;
+  private final int totalTries = 7;
+  private int tries = totalTries;
   private HangmanGameInstance gameInstance;
-
-  public int getTries() {
-    return tries;
-  }
-
-  public int getScore() {
-    return score;
-  }
 
   /**
    * @see HangmanGameInstance#HangmanGameInstance()
@@ -25,23 +19,36 @@ public class HangmanGame {
   }
 
   /**
-   * @see HangmanGameInstance#guess(String)
+   * Calls the corresponding game instance guess and tries the guess against the chosen word.
+   *
+   * @param guess The string to guess.
+   * @return A response message to be passed to the client or null if something is invalid.
    */
-  public char[] guess(String msgBody) {
+  public String guess(String guess) {
     if (tries < 1) return null;
     if (gameInstance == null) return null;
     if (gameInstance.correctWord) return null;
 
-    char[] msg = msgBody.toCharArray();
+    char[] msg = guess.toCharArray();
+    char[] guessResult;
 
-    if (msg.length > 1)
-      return gameInstance.guess(msg);
+    if (msg.length > 1) {
+      guessResult = gameInstance.guess(msg);
+    } else {
+      guessResult = gameInstance.guess(msg[0]);
+    }
 
-    return gameInstance.guess(msg[0]);
+    StringJoiner response = new StringJoiner(", ");
+
+    response.add("Word: " + new String(guessResult));
+    response.add("attempts: " + (totalTries - tries) + "/" + totalTries);
+    response.add("score: " + score);
+
+    return response.toString();
   }
 
   private class HangmanGameInstance {
-    private final char[] word = WordList.getInstance().getRandomWord().toCharArray();
+    private final char[] word = WordList.getRandomWord().toCharArray();
     private char[] wordGuess;
     private boolean correctWord;
 
@@ -52,6 +59,12 @@ public class HangmanGame {
       }
     }
 
+    /**
+     * Make a guess for the Hangman game instance
+     *
+     * @param guess The guess
+     * @return The word where the chars are on the correct place
+     */
     char[] guess(char guess) {
       boolean correct = false;
       correctWord = true;
@@ -71,6 +84,12 @@ public class HangmanGame {
       return wordGuess;
     }
 
+    /**
+     * Make a guess for the whole word
+     *
+     * @param guess The word to guess for
+     * @return The correct word if correct or the previous guessed word if incorrect
+     */
     char[] guess(char[] guess) {
       if (!Arrays.equals(word, guess)) {
         tries--;
