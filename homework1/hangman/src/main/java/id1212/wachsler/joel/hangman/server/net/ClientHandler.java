@@ -1,13 +1,15 @@
 package id1212.wachsler.joel.hangman.server.net;
 
 import id1212.wachsler.joel.hangman.common.Message;
-import id1212.wachsler.joel.hangman.common.MessageException;
 import id1212.wachsler.joel.hangman.common.MsgType;
 import id1212.wachsler.joel.hangman.server.controller.Controller;
 
 import java.io.*;
 import java.net.Socket;
 
+/**
+ * Handles a client socket instance.
+ */
 public class ClientHandler implements Runnable {
   private final HangmanServer server;
   private final Socket clientSocket;
@@ -52,7 +54,7 @@ public class ClientHandler implements Runnable {
             disconnectClient();
             break;
           default:
-            throw new MessageException("Received a corrupt message: " + msg.getType());
+            throw new StreamCorruptedException("Received a corrupt message: " + msg.getType());
         }
       } catch (IOException | ClassNotFoundException e) {
         disconnectClient();

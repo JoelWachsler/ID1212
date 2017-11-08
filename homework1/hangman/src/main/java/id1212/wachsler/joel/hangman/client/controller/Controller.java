@@ -7,6 +7,9 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * Controller for the client.
+ */
 public class Controller {
   private final ServerConnection serverConnection = new ServerConnection();
 

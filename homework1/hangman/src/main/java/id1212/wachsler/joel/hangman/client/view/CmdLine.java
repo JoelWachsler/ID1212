@@ -3,7 +3,7 @@ package id1212.wachsler.joel.hangman.client.view;
 import java.util.Arrays;
 
 /**
- * Parse commands from strings
+ * Parses client commands.
  */
 class CmdLine {
   private static final String PARAM_DELIMITER = " ";
@@ -42,7 +42,7 @@ class CmdLine {
   }
 
   /**
-   * @return The current command
+   * @return The current parsed command.
    */
   Command getCmd() {
     return cmd;

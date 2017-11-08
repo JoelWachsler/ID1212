@@ -8,6 +8,9 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 
+/**
+ * Reads random words from a file.
+ */
 public class WordList {
   private static WordList instance = new WordList();
   private static List<String> words;
@@ -28,11 +31,14 @@ public class WordList {
     return instance;
   }
 
-  public static String getRandomWord() {
-    return getInstance().randomWord();
-  }
-
   private String randomWord() {
     return words.get(random.nextInt(words.size()));
+  }
+
+  /**
+   * @return A random word
+   */
+  public static String getRandomWord() {
+    return getInstance().randomWord();
   }
 }

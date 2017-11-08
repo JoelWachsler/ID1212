@@ -1,17 +1,20 @@
 package id1212.wachsler.joel.hangman.client.view;
 
+/**
+ * Thread safe printing.
+ */
 class ThreadSafeStdOut {
   /**
    * Thread safe printing
-   * @param output
+   * @param output The output message to print.
    */
   synchronized void print(String output) {
     System.out.print(output);
   }
 
   /**
-   * Thread safe printing with line break
-   * @param output
+   * Thread safe printing with line break.
+   * @param output The output message to print.
    */
   synchronized void println(String output) {
     System.out.println(output);

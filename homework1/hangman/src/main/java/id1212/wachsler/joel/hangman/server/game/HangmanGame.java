@@ -87,8 +87,8 @@ public class HangmanGame {
     /**
      * Make a guess for the whole word
      *
-     * @param guess The word to guess for
-     * @return The correct word if correct or the previous guessed word if incorrect
+     * @param guess The guessed word.
+     * @return The correct word if correct or the previous guessed word if incorrect.
      */
     char[] guess(char[] guess) {
       if (!Arrays.equals(word, guess)) {

@@ -1,23 +1,23 @@
 package id1212.wachsler.joel.hangman.common;
 
 /**
- * Defines different message types
+ * Defines different message types.
  */
 public enum MsgType {
   /**
-   * Starts a new game
+   * Starts a new game.
    */
   START,
   /**
-   * The result of a guess which sends Word, Remaining failed attempts and Score
+   * The server response of a hangman guess.
    */
   GUESS_RESPONSE,
   /**
-   * Make a guess on the word
+   * A client guess of a hangman word.
    */
   GUESS,
   /**
-   * The client is about to disconnect
+   * The client is about to disconnect.
    */
   DISCONNECT
 }

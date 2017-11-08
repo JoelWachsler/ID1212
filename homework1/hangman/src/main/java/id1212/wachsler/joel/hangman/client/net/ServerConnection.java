@@ -101,9 +101,7 @@ public class ServerConnection {
           outputHandler.handleMsg(message.getBody());
         }
       } catch (Throwable connectionFailure) {
-        if (connected) {
-          outputHandler.handleMsg("Connection lost to the server...");
-        }
+        if (connected) outputHandler.handleMsg("Connection lost to the server...");
       }
     }
   }

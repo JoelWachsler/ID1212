@@ -14,10 +14,20 @@ public class Message implements Serializable {
     this.body = body;
   }
 
+  /**
+   * Get the message type.
+   *
+   * @return The type.
+   */
   public MsgType getType() {
     return type;
   }
 
+  /**
+   * Get the body.
+   *
+   * @return Get the message body.
+   */
   public String getBody() {
     return body;
   }
