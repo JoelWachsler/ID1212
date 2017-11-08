@@ -1,4 +1,4 @@
-package id1212.wachsler.joel.hangman.server.game;
+package id1212.wachsler.joel.hangman.server.word;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 
-class WordList {
+public class WordList {
   private static WordList instance = new WordList();
   private static List<String> words;
   private Random random = new Random();
@@ -24,11 +24,11 @@ class WordList {
     }
   }
 
-  static WordList getInstance() {
+  public static WordList getInstance() {
     return instance;
   }
 
-  String getRandomWord() {
+  public String getRandomWord() {
     return words.get(random.nextInt(words.size()));
   }
 }

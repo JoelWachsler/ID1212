@@ -1,5 +1,7 @@
 package id1212.wachsler.joel.hangman.server.game;
 
+import id1212.wachsler.joel.hangman.server.word.WordList;
+
 import java.util.Arrays;
 
 public class HangmanGame {
