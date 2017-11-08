@@ -1,22 +1,18 @@
 package id1212.wachsler.joel.hangman.server.net;
 
-import id1212.wachsler.joel.hangman.common.Constants;
+import id1212.wachsler.joel.hangman.common.Message;
 import id1212.wachsler.joel.hangman.common.MessageException;
 import id1212.wachsler.joel.hangman.common.MsgType;
 import id1212.wachsler.joel.hangman.server.controller.Controller;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.Arrays;
-import java.util.StringJoiner;
-
-import static id1212.wachsler.joel.hangman.common.Constants.MSG_DELIMITER;
 
 public class ClientHandler implements Runnable {
   private final HangmanServer server;
   private final Socket clientSocket;
-  private BufferedReader fromClient;
-  private PrintWriter toClient;
+  private ObjectInputStream fromClient;
+  private ObjectOutputStream toClient;
   private boolean connected;
   private Controller controller = new Controller();
 
@@ -31,9 +27,8 @@ public class ClientHandler implements Runnable {
   public void run() {
     // Create input and output streams to the client
     try {
-      boolean autoFlush = true; // Just for readability
-      fromClient = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-      toClient = new PrintWriter(clientSocket.getOutputStream(), autoFlush);
+      fromClient = new ObjectInputStream(clientSocket.getInputStream());
+      toClient = new ObjectOutputStream(clientSocket.getOutputStream());
     } catch (IOException e) {
       System.err.println("Failed to create read/write streams...");
       e.printStackTrace();
@@ -41,13 +36,13 @@ public class ClientHandler implements Runnable {
 
     while (connected) {
       try {
-        Message msg = new Message(fromClient.readLine());
+        Message msg = (Message) fromClient.readObject();
 
-        switch (msg.msgType) {
+        switch (msg.getType()) {
           case GUESS:
             System.out.println("Got a message!");
-            System.out.println("The message is: " + msg.msgBody);
-            sendGuessResponse(controller.guess(msg.msgBody), controller.getTries(), controller.getScore());
+            System.out.println("The message is: " + msg.getBody());
+            sendGuessResponse(controller.guess(msg.getBody()), controller.getTries(), controller.getScore());
             break;
           case START:
             System.out.println("The client wants to start a new game instance!");
@@ -57,32 +52,34 @@ public class ClientHandler implements Runnable {
             disconnectClient();
             break;
           default:
-            throw new MessageException("Received a corrupt message: " + msg.receivedString);
+            throw new MessageException("Received a corrupt message: " + msg.getType());
         }
-      } catch (IOException e) {
+      } catch (IOException | ClassNotFoundException e) {
         disconnectClient();
-        throw new MessageException(e);
+        System.err.println(e.getMessage());
       }
     }
   }
 
-  private void sendGuessResponse(char[] guess, int tries, int score) {
+  private void sendGuessResponse(char[] guess, int tries, int score) throws IOException {
     if (guess == null) return;
 
     sendMsg(
-      MsgType.GUESS_RESPONSE.toString(),
+      MsgType.GUESS_RESPONSE,
       "Word: " + String.valueOf(guess) + ", " +
         "Remaining failed attempts: " + tries + ", " +
         "Score: " + score
     );
   }
 
-  private void sendMsg(String... parts) {
-    StringJoiner joiner = new StringJoiner(Constants.MSG_DELIMITER);
-
-    Arrays.stream(parts).forEach(joiner::add);
-
-    toClient.println(joiner.toString());
+  /**
+   * Encapsulates the message and sends it to the server.
+   */
+  private void sendMsg(MsgType type, String body) throws IOException {
+    Message message = new Message(type, body);
+    toClient.writeObject(message);
+    toClient.flush(); // Flush the pipe
+    toClient.reset(); // Remove object cache
   }
 
   private void disconnectClient() {
@@ -95,32 +92,5 @@ public class ClientHandler implements Runnable {
 
     connected = false;
     server.removeHandler(this);
-  }
-
-  private static class Message {
-    private MsgType msgType;
-    private String msgBody;
-    private String receivedString;
-
-    private Message(String receivedString) {
-      this.receivedString = receivedString;
-      parse(receivedString);
-    }
-
-    private void parse(String strToParse) {
-      try {
-        String[] msgTokens = strToParse.split(MSG_DELIMITER);
-        msgType = MsgType.valueOf(msgTokens[Constants.MSG_TYPE_INDEX].toUpperCase());
-        if (hasBody(msgTokens)) {
-          msgBody = msgTokens[Constants.MSG_BODY_INDEX];
-        }
-      } catch (Throwable throwable) {
-        throw new MessageException(throwable);
-      }
-    }
-
-    private boolean hasBody(String[] msgTokens) {
-      return msgTokens.length > 1;
-    }
   }
 }

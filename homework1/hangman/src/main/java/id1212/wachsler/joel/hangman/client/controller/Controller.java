@@ -32,13 +32,25 @@ public class Controller {
    */
   public void guess(String guessingWord) {
     // Send async guess
-    CompletableFuture.runAsync(() -> serverConnection.sendGuess(guessingWord));
+    CompletableFuture.runAsync(() -> {
+      try {
+        serverConnection.sendGuess(guessingWord);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    });
   }
 
   /**
    * @see ServerConnection#startGame()
    */
   public void startGame() {
-    CompletableFuture.runAsync(serverConnection::startGame);
+    CompletableFuture.runAsync(() -> {
+      try {
+        serverConnection.startGame();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    });
   }
 }

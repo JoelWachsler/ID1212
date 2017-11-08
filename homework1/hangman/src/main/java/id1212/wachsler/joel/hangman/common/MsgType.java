@@ -17,10 +17,6 @@ public enum MsgType {
    */
   GUESS,
   /**
-   * The server wants to broadcast a message to all clients
-   */
-  BROADCAST,
-  /**
    * The client is about to disconnect
    */
   DISCONNECT

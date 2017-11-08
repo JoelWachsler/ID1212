@@ -1,17 +1,11 @@
 package id1212.wachsler.joel.hangman.client.net;
 
-import id1212.wachsler.joel.hangman.common.Constants;
-import id1212.wachsler.joel.hangman.common.MessageException;
+import id1212.wachsler.joel.hangman.common.Message;
 import id1212.wachsler.joel.hangman.common.MsgType;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.util.Arrays;
-import java.util.StringJoiner;
 
 /**
  * Handles connections and message handling to and from the server
@@ -19,8 +13,8 @@ import java.util.StringJoiner;
 public class ServerConnection {
   private static final int SOCKET_TIMEOUT = 1800000; // Set socket timeout to half a minute
   private Socket socket;
-  private PrintWriter toServer;
-  private BufferedReader fromServer;
+  private ObjectOutputStream toServer;
+  private ObjectInputStream fromServer;
   private volatile boolean connected;
   private OutputHandler outputHandler;
 
@@ -38,23 +32,19 @@ public class ServerConnection {
     socket.connect(new InetSocketAddress(host, port), SOCKET_TIMEOUT);
     socket.setSoTimeout(SOCKET_TIMEOUT);
     connected = true;
-    boolean autoFlush = true;
-    toServer = new PrintWriter(socket.getOutputStream(), autoFlush);
-    fromServer = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+    toServer = new ObjectOutputStream(socket.getOutputStream());
+    fromServer = new ObjectInputStream(socket.getInputStream());
     new Thread(new Listener(broadcastHandler)).start();
   }
 
   /**
-   * Joins the arguments and sends them to the server
-   *
-   * @param parts Arbitrary number of args (parts is treated as an array in the body)
+   * Encapsulates the message and sends it to the server.
    */
-  private void sendMsg(String... parts) {
-    StringJoiner joiner = new StringJoiner(Constants.MSG_DELIMITER);
-
-    Arrays.stream(parts).forEach(joiner::add);
-
-    toServer.println(joiner.toString());
+  private void sendMsg(MsgType type, String body) throws IOException {
+    Message message = new Message(type, body);
+    toServer.writeObject(message);
+    toServer.flush(); // Flush the pipe
+    toServer.reset(); // Remove object cache
   }
 
   /**
@@ -63,7 +53,7 @@ public class ServerConnection {
    * @throws IOException
    */
   public void disconnect() throws IOException {
-    sendMsg(MsgType.DISCONNECT.toString());
+    sendMsg(MsgType.DISCONNECT, "");
     socket.close();
     socket = null;
     connected = false;
@@ -74,17 +64,17 @@ public class ServerConnection {
    *
    * @param guessingWord The word or letter to guess
    */
-  public void sendGuess(String guessingWord) {
+  public void sendGuess(String guessingWord) throws IOException {
     outputHandler.handleMsg("Sending a guess!");
-    sendMsg(MsgType.GUESS.toString(), guessingWord);
+    sendMsg(MsgType.GUESS, guessingWord);
   }
 
   /**
    * Sends a start message to the server
    */
-  public void startGame() {
+  public void startGame() throws IOException {
     outputHandler.handleMsg("Starting a new game!");
-    sendMsg(MsgType.START.toString());
+    sendMsg(MsgType.START, "");
   }
 
   private class Listener implements Runnable {
@@ -98,22 +88,15 @@ public class ServerConnection {
     public void run() {
       try {
         while (true) {
-          outputHandler.handleMsg(extractMsgBody(fromServer.readLine()));
+          Message message = (Message) fromServer.readObject();
+
+          outputHandler.handleMsg(message.getBody());
         }
       } catch (Throwable connectionFailure) {
         if (connected) {
           outputHandler.handleMsg("Lost connection...");
-          connectionFailure.printStackTrace();
         }
       }
-    }
-
-    private String extractMsgBody(String entireMsg) {
-      String[] msgParts = entireMsg.split(Constants.MSG_DELIMITER);
-      if (MsgType.valueOf(msgParts[Constants.MSG_TYPE_INDEX].toUpperCase()) != MsgType.GUESS_RESPONSE) {
-        throw new MessageException("A corrupt message was received: " + entireMsg);
-      }
-      return msgParts[Constants.MSG_BODY_INDEX];
     }
   }
 }
