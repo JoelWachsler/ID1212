@@ -1,6 +1,5 @@
 package id1212.wachsler.joel.hangman.client.view;
 
-import java.lang.reflect.Array;
 import java.util.Arrays;
 
 /**
@@ -10,10 +9,8 @@ class CmdLine {
   private static final String PARAM_DELIMITER = " ";
   private String[] params;
   private Command cmd;
-  private final String enteredLine;
 
   CmdLine(String enteredLine) throws InvalidCommandException {
-    this.enteredLine = enteredLine;
     parseCommands(enteredLine);
     parseArgs(enteredLine);
   }
@@ -40,7 +37,7 @@ class CmdLine {
       case "CONNECT": cmd = Command.CONNECT;  break;
       case "QUIT":    cmd = Command.QUIT;     break;
       default:
-        throw new InvalidCommandException("The command \"" + splitText[0].toLowerCase() + "\" is not a valid command!");
+        throw new InvalidCommandException("\"" + splitText[0].toLowerCase() + "\" is not a valid command!");
     }
   }
 

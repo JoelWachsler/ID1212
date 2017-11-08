@@ -28,7 +28,13 @@ public class NonBlockingInterpreter implements Runnable {
   public void run() {
     while (receivingCmds) {
       try {
-        CmdLine cmdLine = new CmdLine(readNextLine());
+        CmdLine cmdLine;
+        try {
+          cmdLine = new CmdLine(readNextLine());
+        } catch (InvalidCommandException e) {
+          outMsg.println(e.getMessage());
+          continue;
+        }
 
         switch (cmdLine.getCmd()) {
           case QUIT:

@@ -1,7 +1,5 @@
 package id1212.wachsler.joel.hangman.server.game;
 
-import id1212.wachsler.joel.hangman.server.controller.Controller;
-
 import java.util.Arrays;
 
 public class HangmanGame {

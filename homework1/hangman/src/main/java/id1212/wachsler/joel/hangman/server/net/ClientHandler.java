@@ -51,7 +51,7 @@ public class ClientHandler implements Runnable {
             break;
           case START:
             System.out.println("The client wants to start a new game instance!");
-            controller.newHangmanGame();
+            controller.startNewGameInstance();
             break;
           case DISCONNECT:
             disconnectClient();

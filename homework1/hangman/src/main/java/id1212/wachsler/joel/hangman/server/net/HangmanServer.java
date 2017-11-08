@@ -1,7 +1,5 @@
 package id1212.wachsler.joel.hangman.server.net;
 
-import id1212.wachsler.joel.hangman.server.controller.Controller;
-
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
