@@ -58,9 +58,9 @@ public class ClientHandler implements Runnable {
         }
       } catch (EOFException e) {
         System.err.println("The client unexpectedly disconnected!");
+        disconnectClient();
       } catch (IOException | ClassNotFoundException e) {
         System.err.println(e.getMessage());
-      } finally {
         disconnectClient();
       }
     }
