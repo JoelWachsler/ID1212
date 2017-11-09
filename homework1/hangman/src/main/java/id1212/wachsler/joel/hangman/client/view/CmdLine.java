@@ -37,7 +37,12 @@ class CmdLine {
       case "CONNECT": cmd = Command.CONNECT;  break;
       case "QUIT":    cmd = Command.QUIT;     break;
       default:
-        throw new InvalidCommandException("\"" + splitText[0].toLowerCase() + "\" is not a valid command!");
+        throw new InvalidCommandException("\"" + splitText[0].toLowerCase() + "\" is not a valid command!\n" +
+          "The valid commands are as follows:\n" +
+          "\"connect\" (connect to the server)\n" +
+          "\"guess <char|word>\" (make a guess!)\n" +
+          "\"start\" (start a game instance)\n" +
+          "\"quit\" (disconnect from the server)");
     }
   }
 
