@@ -47,7 +47,7 @@ public class ClientHandler implements Runnable {
             sendGuessResponse(controller.guess(msg.getBody()));
             break;
           case START:
-            System.out.println("The client wants to start a new game instance!");
+            System.out.println("The client wants to start a new game instance.");
             controller.startNewGameInstance();
             break;
           case DISCONNECT:
@@ -56,9 +56,12 @@ public class ClientHandler implements Runnable {
           default:
             throw new StreamCorruptedException("Received a corrupt message: " + msg.getType());
         }
+      } catch (EOFException e) {
+        System.err.println("The client unexpectedly disconnected!");
       } catch (IOException | ClassNotFoundException e) {
-        disconnectClient();
         System.err.println(e.getMessage());
+      } finally {
+        disconnectClient();
       }
     }
   }

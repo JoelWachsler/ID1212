@@ -31,6 +31,13 @@ public class Controller {
   }
 
   /**
+   * @see ServerConnection#isConnected()
+   */
+  public boolean isConnected() {
+    return serverConnection.isConnected();
+  }
+
+  /**
    * @see ServerConnection#sendGuess(String)
    */
   public void guess(String guessingWord) {

@@ -10,7 +10,7 @@ import java.util.List;
 public class HangmanServer {
   private static final int LINGER_TIME = 5000; // Time to keep on sending if the connection is closed
   private static final int SOCKET_TIMEOUT = 1800000; // Set socket timeout to half a minute
-  private static int port = 8080; // Server listening port
+  private static int port = 8080; // Server default listening port
   private final List<ClientHandler> clients = new ArrayList<>();
 
   public static void main(String[] args) {
@@ -41,7 +41,7 @@ public class HangmanServer {
   }
 
   private void startClientHandler(Socket client) throws SocketException {
-    System.out.println("Got a connection!!!");
+    System.out.println("A client wants to connect!");
 
     client.setSoLinger(true, LINGER_TIME); // Set linger time
     client.setSoTimeout(SOCKET_TIMEOUT); // Set socket timeout

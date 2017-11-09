@@ -85,6 +85,15 @@ public class ServerConnection {
     sendMsg(MsgType.START);
   }
 
+  /**
+   * Returns true or false if the client is connected to the server
+   *
+   * @return true if connected to the server else false
+   */
+  public boolean isConnected() {
+    return connected;
+  }
+
   private class Listener implements Runnable {
     private final OutputHandler outputHandler;
 

@@ -32,8 +32,14 @@ public class NonBlockingInterpreter implements Runnable {
         try {
           cmdLine = new CmdLine(readNextLine());
         } catch (InvalidCommandException e) {
+          // Catching the exception here in order to not close the connection to the server
+          // if the user is entering an invalid command.
           outMsg.println(e.getMessage());
           continue;
+        }
+
+        if (!controller.isConnected() && cmdLine.getCmd() != Command.CONNECT) {
+          throw new IllegalStateException("You are not connected to the server.\nRun the \"connect\" command to connect.");
         }
 
         switch (cmdLine.getCmd()) {
@@ -52,8 +58,7 @@ public class NonBlockingInterpreter implements Runnable {
             break;
         }
       } catch (Exception e) {
-        outMsg.println("Operation failed!");
-        e.printStackTrace();
+        outMsg.println(e.getMessage());
       }
     }
   }

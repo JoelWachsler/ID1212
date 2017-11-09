@@ -25,9 +25,11 @@ public class HangmanGame {
    * @return A response message to be passed to the client or null if something is invalid.
    */
   public String guess(String guess) {
-    if (tries < 1) return null;
-    if (gameInstance == null) return null;
-    if (gameInstance.correctWord) return null;
+    if (tries < 1) return "There are no tries left!";
+    if (gameInstance == null) return "There is no game instance, start a new instance in order to play!";
+    if (gameInstance.correctWord)
+      return "You have already guessed the correct word for this game instance.\n" +
+      "Start a new game instance in order to guess again!";
 
     char[] msg = guess.toCharArray();
     char[] guessResult;
