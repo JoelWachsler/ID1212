@@ -1,4 +1,4 @@
-package id1212.wachsler.joel.hangman.server.word;
+package id1212.wachsler.joel.hangman.server.filehandling;
 
 import java.io.BufferedReader;
 import java.io.IOException;
