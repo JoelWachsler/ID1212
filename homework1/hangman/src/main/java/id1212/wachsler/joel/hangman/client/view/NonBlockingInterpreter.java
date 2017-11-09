@@ -58,7 +58,7 @@ public class NonBlockingInterpreter implements Runnable {
             break;
         }
       } catch (Exception e) {
-        outMsg.println(e.getMessage());
+        if (receivingCmds) outMsg.println(e.getMessage());
       }
     }
   }
