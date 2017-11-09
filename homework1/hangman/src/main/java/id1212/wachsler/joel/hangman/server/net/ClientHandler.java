@@ -38,7 +38,7 @@ public class ClientHandler implements Runnable {
 
     while (connected) {
       try {
-        Message msg = (Message) fromClient.readObject();
+        Message msg = (Message) fromClient.readObject(); // Blocking TCP connection
 
         switch (msg.getType()) {
           case GUESS:
