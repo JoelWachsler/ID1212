@@ -40,7 +40,7 @@ class CmdLine {
         throw new InvalidCommandException("\"" + splitText[0].toLowerCase() + "\" is not a valid command!\n" +
           "The valid commands are as follows:\n" +
           "\"connect\" (connect to the server)\n" +
-          "\"guess <char|word>\" (make a guess!)\n" +
+          "\"guess <char|string>\" (make a guess!)\n" +
           "\"start\" (start a game instance)\n" +
           "\"quit\" (disconnect from the server)");
     }
@@ -61,7 +61,7 @@ class CmdLine {
    */
   String getArg(int i) {
     if (params == null) return null;
-    if (params.length < i) return null;
+    if (params.length < i || params.length == 0) throw new IndexOutOfBoundsException("Command misuse!");
 
     return params[i];
   }
