@@ -54,7 +54,12 @@ public class NonBlockingInterpreter implements Runnable {
             controller.startGame();
             break;
           case GUESS:
-            controller.guess(cmdLine.getArg(0));
+            try {
+              controller.guess(cmdLine.getArg(0));
+            } catch (IndexOutOfBoundsException e) {
+              outMsg.println("Invalid use of guess!\n" +
+                "The correct way is: \"guess <char|string>\"");
+            }
             break;
         }
       } catch (Exception e) {
