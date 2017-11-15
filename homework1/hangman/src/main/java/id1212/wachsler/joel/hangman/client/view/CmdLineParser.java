@@ -5,12 +5,12 @@ import java.util.Arrays;
 /**
  * Parses client commands.
  */
-class CmdLine {
+class CmdLineParser {
   private static final String PARAM_DELIMITER = " ";
   private String[] params;
   private Command cmd;
 
-  CmdLine(String enteredLine) throws InvalidCommandException {
+  CmdLineParser(String enteredLine) throws InvalidCommandException {
     parseCommands(enteredLine);
     parseArgs(enteredLine);
   }

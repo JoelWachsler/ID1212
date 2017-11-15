@@ -13,7 +13,7 @@ public class HangmanServer {
   private static int port = 8080; // Server default listening port
   private final List<ClientHandler> clients = new ArrayList<>();
 
-  public static void main(String[] args) {
+  public static void start(String[] args) {
     System.out.println("HangmanServer started!");
 
     parseArgs(args);
