@@ -15,8 +15,7 @@ public class ServerConnection {
   private Socket socket;
   private ObjectOutputStream toServer;
   private ObjectInputStream fromServer;
-  private volatile boolean connected;
-  private OutputHandler outputHandler;
+  private volatile boolean connected; // Read from main memory and not cache
 
   /**
    * Connects to the specified server
@@ -27,7 +26,6 @@ public class ServerConnection {
    * @throws IOException
    */
   public void connect(String host, int port, OutputHandler broadcastHandler) throws IOException {
-    this.outputHandler = broadcastHandler;
     socket = new Socket();
     socket.connect(new InetSocketAddress(host, port), SOCKET_TIMEOUT);
     socket.setSoTimeout(SOCKET_TIMEOUT);
