@@ -28,9 +28,9 @@ public class NonBlockingInterpreter implements Runnable {
   public void run() {
     while (receivingCmds) {
       try {
-        CmdLine cmdLine;
+        CmdLineParser cmdLine;
         try {
-          cmdLine = new CmdLine(readNextLine());
+          cmdLine = new CmdLineParser(readNextLine());
         } catch (InvalidCommandException e) {
           // Catching the exception here in order to not close the connection to the server
           // if the user is entering an invalid command.
