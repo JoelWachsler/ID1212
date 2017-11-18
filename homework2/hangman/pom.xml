@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>id1212.wachsler.joel.hangman</groupId>
-  <artifactId>hw1-hangman</artifactId>
+  <artifactId>hw2-hangman</artifactId>
   <version>1.0-SNAPSHOT</version>
   <build>
     <plugins>
