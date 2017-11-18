@@ -7,7 +7,7 @@ import java.util.StringJoiner;
 
 public class HangmanGame {
   private int score = 0;
-  private final int totalTries = 7;
+  private int totalTries;
   private int tries = totalTries;
   private HangmanGameInstance gameInstance;
 
@@ -59,6 +59,8 @@ public class HangmanGame {
       for (int i = 0; i < wordGuess.length; i++) {
         wordGuess[i] = '_';
       }
+
+      totalTries = word.length;
     }
 
     /**
