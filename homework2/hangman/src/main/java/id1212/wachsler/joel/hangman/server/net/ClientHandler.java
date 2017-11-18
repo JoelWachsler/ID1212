@@ -1,26 +1,29 @@
 package id1212.wachsler.joel.hangman.server.net;
 
+import id1212.wachsler.joel.hangman.common.Constants;
 import id1212.wachsler.joel.hangman.common.Message;
 import id1212.wachsler.joel.hangman.common.MsgType;
 import id1212.wachsler.joel.hangman.server.controller.Controller;
 
 import java.io.*;
-import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 
 /**
  * Handles a client socket instance.
  */
 public class ClientHandler implements Runnable {
   private final HangmanServer server;
-  private final Socket clientSocket;
+  private final SocketChannel clientChannel;
   private ObjectInputStream fromClient;
   private ObjectOutputStream toClient;
   private boolean connected;
   private Controller controller = new Controller();
+  private final ByteBuffer messageBuffer = ByteBuffer.allocateDirect(Constants.MAX_MSG_LENGTH);
 
-  ClientHandler(HangmanServer server, Socket clientSocket) {
+  ClientHandler(HangmanServer server, SocketChannel clientChannel) {
     this.server = server;
-    this.clientSocket = clientSocket;
+    this.clientChannel = clientChannel;
     controller.newHangmanGame();
     connected = true;
   }
@@ -92,5 +95,25 @@ public class ClientHandler implements Runnable {
 
     connected = false;
     server.removeHandler(this);
+  }
+
+  void disconnect() throws IOException {
+    clientChannel.close();
+  }
+
+  void receiveMsg() throws IOException {
+    messageBuffer.clear();
+    int readBytes = clientChannel.read(messageBuffer);
+
+    if (readBytes == -1) throw new IOException("Client closed the connection...");
+
+    String receivedMsg = extractMsgFromBuffer();
+  }
+
+  private String extractMsgFromBuffer() {
+    messageBuffer.flip();
+    byte[] bytes = new byte[messageBuffer.remaining()];
+
+    return String.valueOf(messageBuffer.get(bytes));
   }
 }

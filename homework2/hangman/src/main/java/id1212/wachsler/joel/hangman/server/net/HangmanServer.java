@@ -1,77 +1,92 @@
 package id1212.wachsler.joel.hangman.server.net;
 
 import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.SocketException;
-import java.util.ArrayList;
-import java.util.List;
+import java.net.InetSocketAddress;
+import java.net.StandardSocketOptions;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
 
 public class HangmanServer {
   private static final int LINGER_TIME = 5000; // Time to keep on sending if the connection is closed
-  private static final int SOCKET_TIMEOUT = 1800000; // Set socket timeout to half a minute
-  private static int port = 8080; // Server default listening port
-  private final List<ClientHandler> clients = new ArrayList<>();
+  private static final int port = 8080; // Server default listening port
 
-  public static void start(String[] args) {
-    System.out.println("HangmanServer started!");
+  private Selector selector;
+  private ServerSocketChannel listeningSocketChannel;
 
-    parseArgs(args);
+  /**
+   * Initializes the HangmanServer
+   */
+  public static void start() {
+    System.out.println("Starting the HangmanServer!");
+
     HangmanServer server = new HangmanServer();
     server.serve();
   }
 
-  private static void parseArgs(String[] args) {
-    if (args.length < 1) return;
-
-    for (String arg : args) {
-      String[] split = arg.split("=");
-      switch (split[0].toUpperCase()) {
-        case "PORT":
-          try {
-            port = Integer.parseInt(split[1]);
-          } catch (NumberFormatException e) {
-            System.err.printf("\"%s\" is not a valid port number!", split[1]);
-          }
-          break;
-        default:
-          System.err.printf("\"%s\" is not a valid argument!", split[0]);
-      }
-    }
-  }
-
-  private void startClientHandler(Socket client) throws SocketException {
-    System.out.println("A client wants to connect!");
-
-    client.setSoLinger(true, LINGER_TIME); // Set linger time
-    client.setSoTimeout(SOCKET_TIMEOUT); // Set socket timeout
-
-    ClientHandler handler = new ClientHandler(this, client);
-    synchronized (clients) {
-      clients.add(handler);
-    }
-    Thread handlerThread = new Thread(handler);
-    handlerThread.setPriority(Thread.MAX_PRIORITY);
-    handlerThread.start();
-
-    System.out.printf("There are now %d clients connected!\n", clients.size());
-  }
-
-  void removeHandler(ClientHandler client) {
-    clients.remove(client);
-  }
-
   private void serve() {
-    try (ServerSocket socket = new ServerSocket(port)) {
-      // Continuously listen for incoming client connections
+    try {
+      selector = Selector.open(); // Open a new selector
+
+      listeningSocketChannel = ServerSocketChannel.open(); // Open server socket channel
+      listeningSocketChannel.configureBlocking(false);
+      listeningSocketChannel.bind(new InetSocketAddress(port));
+      // Register channel to selector and we're interested in accepting connections
+      listeningSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
+
       while (true) {
+        selector.select(); // Blocking until at least one channel is selected
+
+        // Go through each key and check if there's something to do
+        for (SelectionKey key : selector.selectedKeys()) {
+          if (!key.isValid()) continue;
+
+          if      (key.isAcceptable())  startClientHandler(key);
+          else if (key.isReadable())    receiveFromClient(key);
+          else if (key.isWritable())    sendToClient(key);
+        }
+      }
+
+/*      while (true) {
         System.out.println("Listening...");
         Socket client = socket.accept(); // Blocking
         startClientHandler(client);
-      }
+      }*/
     } catch (IOException e) {
       System.err.println("Server failed...");
       e.printStackTrace();
     }
+  }
+
+  private void startClientHandler(SelectionKey key) throws IOException {
+    System.out.println("A client wants to connect!");
+
+    ServerSocketChannel serverSocketChannel = (ServerSocketChannel)  key.channel();
+    SocketChannel clientChannel = serverSocketChannel.accept();
+    clientChannel.configureBlocking(false);
+
+    ClientHandler handler = new ClientHandler(this, clientChannel);
+    clientChannel.register(selector, SelectionKey.OP_READ, handler);
+    clientChannel.setOption(StandardSocketOptions.SO_LINGER, LINGER_TIME);
+  }
+
+  private void receiveFromClient(SelectionKey clientKey) throws IOException {
+    ClientHandler clientHandler = (ClientHandler) clientKey.attachment();
+    try {
+      clientHandler.receiveMsg();
+    } catch (IOException clientClosedConn) {
+      System.out.println("A client closed the connection!");
+      removeClient(clientKey);
+    }
+  }
+
+  private void sendToClient(SelectionKey clientKey) {
+  }
+
+  private void removeClient(SelectionKey clientKey) throws IOException {
+    ClientHandler clientHandler = (ClientHandler) clientKey.attachment();
+    clientHandler.disconnect();
+    clientKey.cancel();
   }
 }
