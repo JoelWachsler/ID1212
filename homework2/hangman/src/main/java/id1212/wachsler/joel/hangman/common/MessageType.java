@@ -3,7 +3,7 @@ package id1212.wachsler.joel.hangman.common;
 /**
  * Defines different message types.
  */
-public enum MsgType {
+public enum MessageType {
   /**
    * Starts a new game.
    */

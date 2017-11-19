@@ -1,53 +1,48 @@
 package id1212.wachsler.joel.hangman.server.net;
 
 import id1212.wachsler.joel.hangman.common.Constants;
-import id1212.wachsler.joel.hangman.common.Message;
-import id1212.wachsler.joel.hangman.common.MsgType;
+import id1212.wachsler.joel.hangman.common.MessageCreator;
+import id1212.wachsler.joel.hangman.common.MessageParser;
+import id1212.wachsler.joel.hangman.common.MessageType;
 import id1212.wachsler.joel.hangman.server.controller.Controller;
 
 import java.io.*;
 import java.nio.ByteBuffer;
+import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
+import java.util.ArrayDeque;
+import java.util.Queue;
+import java.util.concurrent.ForkJoinPool;
 
 /**
  * Handles a client socket instance.
  */
 public class ClientHandler implements Runnable {
-  private final HangmanServer server;
   private final SocketChannel clientChannel;
-  private ObjectInputStream fromClient;
-  private ObjectOutputStream toClient;
   private boolean connected;
   private Controller controller = new Controller();
-  private final ByteBuffer messageBuffer = ByteBuffer.allocateDirect(Constants.MAX_MSG_LENGTH);
+  private final ByteBuffer messageBuffer = ByteBuffer.allocateDirect(Constants.MSG_MAX_LEN);
+  private final MessageParser messageParser = new MessageParser();
+  private final Queue<ByteBuffer> messageQueue = new ArrayDeque<>(); // Init capacity = 16
+  private final Selector serverSelector;
 
-  ClientHandler(HangmanServer server, SocketChannel clientChannel) {
-    this.server = server;
+  ClientHandler(SocketChannel clientChannel, Selector serverSelector) {
     this.clientChannel = clientChannel;
+    this.serverSelector = serverSelector;
     controller.newHangmanGame();
     connected = true;
   }
 
   @Override
   public void run() {
-    // Create input and output streams to the client
-    try {
-      fromClient = new ObjectInputStream(clientSocket.getInputStream());
-      toClient = new ObjectOutputStream(clientSocket.getOutputStream());
-    } catch (IOException e) {
-      System.err.println("Failed to create read/write streams...");
-      e.printStackTrace();
-    }
-
     while (connected) {
       try {
-        Message msg = (Message) fromClient.readObject(); // Blocking TCP connection
+        Message message = new Message(messageParser.nextMsg());
 
-        switch (msg.getType()) {
+        switch (message.getType()) {
           case GUESS:
-            System.out.println("Got a message!");
-            System.out.println("The message is: " + msg.getBody());
-            sendGuessResponse(controller.guess(msg.getBody()));
+            System.out.println("A new guess is being processed: " + message.getBody());
+            sendGuessResponse(controller.guess(message.getBody()));
             break;
           case START:
             System.out.println("The client wants to start a new game instance.");
@@ -57,12 +52,12 @@ public class ClientHandler implements Runnable {
             disconnectClient();
             break;
           default:
-            throw new StreamCorruptedException("Received a corrupt message: " + msg.getType());
+            throw new StreamCorruptedException("Received a corrupt message: " + message.getType());
         }
       } catch (EOFException e) {
         System.err.println("The client unexpectedly disconnected!");
         disconnectClient();
-      } catch (IOException | ClassNotFoundException e) {
+      } catch (IOException e) {
         System.err.println(e.getMessage());
         disconnectClient();
       }
@@ -72,33 +67,44 @@ public class ClientHandler implements Runnable {
   private void sendGuessResponse(String response) throws IOException {
     if (response == null) return;
 
-    sendMsg(MsgType.GUESS_RESPONSE, response);
+    addMsg(MessageType.GUESS_RESPONSE, response);
+  }
+
+  private void addMsg(MessageType guessResponse, String response) {
+    ByteBuffer msg = MessageCreator.createMessage(guessResponse, response);
+
+    synchronized (messageQueue) {
+      messageQueue.add(msg);
+    }
+
+    serverSelector.wakeup();
   }
 
   /**
-   * Encapsulates the message and sends it to the server.
+   * Sends all messages in the message queue to the client.
    */
-  private void sendMsg(MsgType type, String body) throws IOException {
-    Message message = new Message(type, body);
-    toClient.writeObject(message);
-    toClient.flush(); // Flush the pipe
-    toClient.reset(); // Remove object cache
-  }
-
-  private void disconnectClient() {
-    try {
-      clientSocket.close();
-    } catch (IOException e) {
-      System.err.println("Couldn't close a client connection!");
-      e.printStackTrace();
+  void sendMessages() throws IOException {
+    ByteBuffer msg;
+    synchronized (messageQueue) {
+      while ((msg = messageQueue.peek()) != null) {
+        sendMsg(msg);
+        messageQueue.poll();
+      }
     }
-
-    connected = false;
-    server.removeHandler(this);
   }
 
-  void disconnect() throws IOException {
-    clientChannel.close();
+  private void sendMsg(ByteBuffer msg) throws IOException {
+    clientChannel.write(msg);
+
+    if (msg.hasRemaining()) throw new IOException("The message could not be sent!");
+  }
+
+  void disconnectClient() {
+    try {
+      clientChannel.close();
+    } catch (IOException e) {
+      System.err.println("Couldn't disconnect a client!");
+    }
   }
 
   void receiveMsg() throws IOException {
@@ -108,6 +114,9 @@ public class ClientHandler implements Runnable {
     if (readBytes == -1) throw new IOException("Client closed the connection...");
 
     String receivedMsg = extractMsgFromBuffer();
+
+    messageParser.addMessage(receivedMsg);
+    ForkJoinPool.commonPool().execute(this);
   }
 
   private String extractMsgFromBuffer() {
@@ -115,5 +124,32 @@ public class ClientHandler implements Runnable {
     byte[] bytes = new byte[messageBuffer.remaining()];
 
     return String.valueOf(messageBuffer.get(bytes));
+  }
+
+  /**
+   * Parses and encapsulates a message from a string.
+   */
+  private static class Message {
+    private MessageType msgType;
+    private String msgBody;
+
+    Message(String unparsedMsg) {
+      parse(unparsedMsg);
+    }
+
+    private void parse(String unparsedMsg) {
+      String[] splitMsg = unparsedMsg.split(Constants.MSG_TYPE_DELIMITER);
+
+      msgType = MessageType.valueOf(splitMsg[Constants.MSG_TYPE_INDEX].toUpperCase());
+      msgBody = splitMsg[Constants.MSG_BODY_INDEX];
+    }
+
+    MessageType getType() {
+      return msgType;
+    }
+
+    String getBody() {
+      return msgBody;
+    }
   }
 }
