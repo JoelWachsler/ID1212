@@ -1,4 +1,6 @@
-package id1212.wachsler.joel.hangman.common;
+package id1212.wachsler.joel.hangman.common.message;
+
+import id1212.wachsler.joel.hangman.common.Constants;
 
 import java.util.ArrayDeque;
 import java.util.Queue;
@@ -8,7 +10,7 @@ import java.util.Queue;
  */
 public class MessageParser {
   private StringBuilder receivedChars = new StringBuilder();
-  private final Queue<String> messages = new ArrayDeque<>();
+  private final Queue<Message> messages = new ArrayDeque<>();
 
   /**
    * Append the new message to previously received messages.
@@ -24,7 +26,7 @@ public class MessageParser {
    * @return <code>String</code> if there is another message.
    *         <code>null</code> if there is no other message.
    */
-  public synchronized String nextMsg() {
+  public synchronized Message nextMsg() {
     return messages.poll();
   }
 
@@ -46,7 +48,7 @@ public class MessageParser {
     if (!isMessageComplete(msgLen, splitAtHeaderLen[1])) return false; // All bytes for this message weren't received
 
     String msg = splitAtHeaderLen[1].substring(0, msgLen);
-    messages.add(msg); // Add to complete messages
+    messages.add(new Message(msg)); // Add to complete messages
 
     receivedChars.delete(0, currentReceivedChars.length()); // Remove the extracted message
 

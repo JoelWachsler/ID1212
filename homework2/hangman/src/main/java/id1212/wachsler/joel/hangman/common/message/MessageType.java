@@ -1,4 +1,4 @@
-package id1212.wachsler.joel.hangman.common;
+package id1212.wachsler.joel.hangman.common.message;
 
 /**
  * Defines different message types.

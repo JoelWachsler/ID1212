@@ -1,10 +1,9 @@
 package id1212.wachsler.joel.hangman.client.controller;
 
-import id1212.wachsler.joel.hangman.client.net.OutputHandler;
+import id1212.wachsler.joel.hangman.client.net.Listener;
 import id1212.wachsler.joel.hangman.client.net.ServerConnection;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -13,14 +12,18 @@ import java.util.concurrent.CompletableFuture;
 public class Controller {
   private final ServerConnection serverConnection = new ServerConnection();
 
-  public void connect(String host, int port, OutputHandler outputHandler) {
-    CompletableFuture.runAsync(() -> {
-      try {
-        serverConnection.connect(host, port, outputHandler);
-      } catch (IOException e) {
-        throw new UncheckedIOException(e);
-      }
-    });
+  /**
+   * @see ServerConnection#addListener(Listener)
+   */
+  public void addServerConnectionListener(Listener listener) {
+    serverConnection.addListener(listener);
+  }
+
+  /**
+   * @see ServerConnection#connect(String, int)
+   */
+  public void connect(String host, int port) {
+    CompletableFuture.runAsync(() -> serverConnection.connect(host, port));
   }
 
   /**
@@ -42,25 +45,13 @@ public class Controller {
    */
   public void guess(String guessingWord) {
     // Send async guess
-    CompletableFuture.runAsync(() -> {
-      try {
-        serverConnection.sendGuess(guessingWord);
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
-    });
+    CompletableFuture.runAsync(() -> serverConnection.sendGuess(guessingWord));
   }
 
   /**
    * @see ServerConnection#startGame()
    */
   public void startGame() {
-    CompletableFuture.runAsync(() -> {
-      try {
-        serverConnection.startGame();
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
-    });
+    CompletableFuture.runAsync(() -> serverConnection.startGame());
   }
 }

@@ -1,41 +1,40 @@
 package id1212.wachsler.joel.hangman.server.net;
 
-import id1212.wachsler.joel.hangman.common.Constants;
-import id1212.wachsler.joel.hangman.common.MessageCreator;
-import id1212.wachsler.joel.hangman.common.MessageParser;
-import id1212.wachsler.joel.hangman.common.MessageType;
+import id1212.wachsler.joel.hangman.common.*;
+import id1212.wachsler.joel.hangman.common.message.Message;
+import id1212.wachsler.joel.hangman.common.message.MessageCreator;
+import id1212.wachsler.joel.hangman.common.message.MessageParser;
+import id1212.wachsler.joel.hangman.common.message.MessageType;
 import id1212.wachsler.joel.hangman.server.controller.Controller;
 
 import java.io.*;
 import java.nio.ByteBuffer;
-import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayDeque;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ForkJoinPool;
 
 /**
  * Handles a client socket instance.
  */
 public class ClientHandler implements Runnable {
   private final SocketChannel clientChannel;
+  private final HangmanServer server;
   private Controller controller = new Controller();
   private final ByteBuffer messageBuffer = ByteBuffer.allocateDirect(Constants.MSG_MAX_LEN);
   private final MessageParser messageParser = new MessageParser();
   private final Queue<ByteBuffer> messageQueue = new ArrayDeque<>(); // Init capacity = 16
-  private final Selector serverSelector;
 
-  ClientHandler(SocketChannel clientChannel, Selector serverSelector) {
+  ClientHandler(SocketChannel clientChannel, HangmanServer server) {
     this.clientChannel = clientChannel;
-    this.serverSelector = serverSelector;
+    this.server = server;
     controller.newHangmanGame();
   }
 
   @Override
   public void run() {
     while (messageParser.hasNext()) try {
-      Message message = new Message(messageParser.nextMsg());
+      Message message = messageParser.nextMsg();
 
       switch (message.getType()) {
         case GUESS:
@@ -58,11 +57,14 @@ public class ClientHandler implements Runnable {
     } catch (IOException e) {
       System.err.println(e.getMessage());
       disconnectClient();
+    } catch (Exception e) {
+      System.out.println(e.getMessage());
+      e.printStackTrace();
     }
   }
 
-  private void sendGuessResponse(String response) throws IOException {
-    if (response == null) return;
+  private void sendGuessResponse(String response) throws IOException, IllegalArgumentException {
+    if (response == null) throw new IllegalArgumentException("Got a null response!");
 
     addMsg(MessageType.GUESS_RESPONSE, response);
   }
@@ -74,7 +76,8 @@ public class ClientHandler implements Runnable {
       messageQueue.add(msg);
     }
 
-    serverSelector.wakeup();
+    server.addPendingMsg(this);
+    server.wakeup();
   }
 
   /**
@@ -111,10 +114,9 @@ public class ClientHandler implements Runnable {
     if (readBytes == -1) throw new IOException("Client closed the connection...");
 
     String receivedMsg = extractMsgFromBuffer();
-
     messageParser.addMessage(receivedMsg);
+
     CompletableFuture.runAsync(this);
-//    ForkJoinPool.commonPool().execute(this);
   }
 
   private String extractMsgFromBuffer() {
@@ -125,35 +127,4 @@ public class ClientHandler implements Runnable {
     return new String(bytes);
   }
 
-  /**
-   * Parses and encapsulates a message from the provided string.
-   * A message must contain a <code>MessageType</code> and a message body.
-   */
-  private static class Message {
-    private MessageType msgType;
-    private String msgBody;
-
-    Message(String unparsedMsg) {
-      parse(unparsedMsg);
-    }
-
-    private void parse(String unparsedMsg) {
-      try {
-        String[] splitMsg = unparsedMsg.split(Constants.MSG_TYPE_DELIMITER);
-
-        msgType = MessageType.valueOf(splitMsg[Constants.MSG_TYPE_INDEX].toUpperCase());
-        msgBody = splitMsg[Constants.MSG_BODY_INDEX];
-      } catch (Exception e) {
-        System.err.println("Unable to parse the following message: " + unparsedMsg);
-      }
-    }
-
-    MessageType getType() {
-      return msgType;
-    }
-
-    String getBody() {
-      return msgBody;
-    }
-  }
 }

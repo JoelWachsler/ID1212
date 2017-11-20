@@ -32,11 +32,11 @@ public class WordList {
   }
 
   private String randomWord() {
-    return words.get(random.nextInt(words.size()));
+    return words.get(random.nextInt(words.size())).toLowerCase();
   }
 
   /**
-   * @return A random word
+   * @return A random word as a <code>String</code>.
    */
   public static String getRandomWord() {
     return getInstance().randomWord();

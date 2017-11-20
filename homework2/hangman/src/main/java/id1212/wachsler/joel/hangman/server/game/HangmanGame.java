@@ -1,16 +1,25 @@
 package id1212.wachsler.joel.hangman.server.game;
 
+import id1212.wachsler.joel.hangman.server.controller.Controller;
 import id1212.wachsler.joel.hangman.server.word.WordList;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.StringJoiner;
 
+/**
+ * Represents the Hangman game and its state.
+ */
 public class HangmanGame {
   private int score = 0;
   private int totalTries;
   private int tries;
   private HangmanGameInstance gameInstance;
+  private Controller controller;
+
+  public HangmanGame(Controller controller) {
+    this.controller = controller;
+  }
 
   /**
    * @see HangmanGameInstance#HangmanGameInstance()
@@ -33,7 +42,7 @@ public class HangmanGame {
       "Start a new game instance in order to guess again!";
     if (gameInstance.wordAlreadyTried(guess)) return "You have already tried that char/word...";
 
-    char[] msg = guess.toCharArray();
+    char[] msg = guess.toLowerCase().toCharArray();
     char[] guessResult;
 
     if (msg.length > 1) {
@@ -52,13 +61,16 @@ public class HangmanGame {
   }
 
   private class HangmanGameInstance {
-    private final char[] word = WordList.getRandomWord().toCharArray();
+    private final char[] word = controller.randomWord().toCharArray();
     private char[] wordGuess;
     private boolean correctWord;
     private HashSet<String> guesses = new HashSet<>();
 
     private HangmanGameInstance() {
+      System.out.println("A new game was started and the word is: " + new String(word));
+
       wordGuess = new char[word.length];
+
       for (int i = 0; i < wordGuess.length; i++) {
         wordGuess[i] = '_';
       }
@@ -68,13 +80,13 @@ public class HangmanGame {
     }
 
     /**
-     * Make a guess for the Hangman game instance
+     * Make a guess for the Hangman game instance.
      *
-     * @param guess The guess
-     * @return The word where the chars are on the correct place
+     * @param guess The guess.
+     * @return The word where the chars are on the correct place.
      */
     char[] guess(char guess) {
-      guesses.add(guesses.toString());
+      guesses.add(String.valueOf(guess));
 
       boolean correct = false;
       correctWord = true;
@@ -88,23 +100,23 @@ public class HangmanGame {
         if (wordGuess[i] == '_') correctWord = false;
       }
 
-      if (!correct) tries--;
+      if (!correct) tries++;
       if (correctWord) score++;
 
       return wordGuess;
     }
 
     /**
-     * Make a guess for the whole word
+     * Make a guess for the whole word.
      *
      * @param guess The guessed word.
-     * @return The correct word if correct or the previous guessed word if incorrect.
+     * @return The correct word if the guess was correct else the previous guessed word.
      */
     char[] guess(char[] guess) {
-      guesses.add(guesses.toString());
+      guesses.add(String.valueOf(guess));
 
       if (!Arrays.equals(word, guess)) {
-        tries--;
+        tries++;
         return wordGuess;
       }
 

@@ -14,6 +14,7 @@ public class HangmanServer {
 
   private Selector selector;
   private ServerSocketChannel listeningSocketChannel;
+  private boolean send = false;
 
   /**
    * Initializes the HangmanServer
@@ -36,6 +37,16 @@ public class HangmanServer {
       listeningSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
 
       while (true) {
+        if (send) {
+          for (SelectionKey key : selector.keys()) {
+            if (key.channel() instanceof SocketChannel && key.isValid()) {
+              key.interestOps(SelectionKey.OP_WRITE);
+            }
+          }
+
+          send = false;
+        }
+
         selector.select(); // Blocking until at least one channel is selected
 
         // Go through each selected key and check if there's something to do
@@ -53,6 +64,9 @@ public class HangmanServer {
     } catch (IOException e) {
       System.err.println("Server failed...");
       e.printStackTrace();
+    } catch (Exception e) {
+      System.err.println(e.getMessage());
+      e.printStackTrace();
     }
   }
 
@@ -63,7 +77,7 @@ public class HangmanServer {
     SocketChannel clientChannel = serverSocketChannel.accept(); // Establish connection
     clientChannel.configureBlocking(false);
 
-    ClientHandler handler = new ClientHandler(clientChannel, selector);
+    ClientHandler handler = new ClientHandler(clientChannel, this);
     clientChannel.register(selector, SelectionKey.OP_READ, handler);
     clientChannel.setOption(StandardSocketOptions.SO_LINGER, LINGER_TIME);
   }
@@ -82,11 +96,29 @@ public class HangmanServer {
     ClientHandler clientHandler = (ClientHandler) clientKey.attachment();
 
     clientHandler.sendMessages();
+    clientKey.interestOps(SelectionKey.OP_READ);
   }
 
   private void removeClient(SelectionKey clientKey) throws IOException {
     ClientHandler clientHandler = (ClientHandler) clientKey.attachment();
     clientHandler.disconnectClient();
     clientKey.cancel(); // Make the key invalid
+  }
+
+  /**
+   * Wakes the server.
+   */
+  void wakeup() {
+    selector.wakeup();
+  }
+
+  /**
+   * Adds a key to be read from at a later time.
+   *
+   * @param clientKey The key to be read from.
+   */
+  void addPendingMsg(ClientHandler clientKey) {
+    //sendPending.add((SelectionKey) clientKey);
+    send = true;
   }
 }

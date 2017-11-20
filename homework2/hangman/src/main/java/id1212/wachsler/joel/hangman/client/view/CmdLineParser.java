@@ -40,8 +40,8 @@ class CmdLineParser {
         throw new InvalidCommandException("\"" + splitText[0].toLowerCase() + "\" is not a valid command!\n" +
           "The valid commands are as follows:\n" +
           "\"connect\" (connect to the server)\n" +
-          "\"guess <char|string>\" (make a guess!)\n" +
           "\"start\" (start a game instance)\n" +
+          "\"guess <char|string>\" (make a guess!)\n" +
           "\"quit\" (disconnect from the server)");
     }
   }

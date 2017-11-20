@@ -1,4 +1,6 @@
-package id1212.wachsler.joel.hangman.common;
+package id1212.wachsler.joel.hangman.common.message;
+
+import id1212.wachsler.joel.hangman.common.Constants;
 
 import java.nio.ByteBuffer;
 import java.util.StringJoiner;

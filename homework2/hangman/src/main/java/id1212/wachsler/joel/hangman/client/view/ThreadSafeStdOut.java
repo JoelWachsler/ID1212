@@ -5,7 +5,8 @@ package id1212.wachsler.joel.hangman.client.view;
  */
 class ThreadSafeStdOut {
   /**
-   * Thread safe printing
+   * Thread safe printing.
+   *
    * @param output The output message to print.
    */
   synchronized void print(String output) {
@@ -14,6 +15,7 @@ class ThreadSafeStdOut {
 
   /**
    * Thread safe printing with line break.
+   *
    * @param output The output message to print.
    */
   synchronized void println(String output) {

@@ -1,16 +1,15 @@
 package id1212.wachsler.joel.hangman.client.view;
 
 import id1212.wachsler.joel.hangman.client.controller.Controller;
-import id1212.wachsler.joel.hangman.client.net.OutputHandler;
+import id1212.wachsler.joel.hangman.client.net.Listener;
 
 import java.util.Scanner;
 
 public class NonBlockingInterpreter implements Runnable {
   private static final String PROMPT = "> ";
-  private final Scanner console = new Scanner(System.in);
   private boolean receivingCmds = false;
   private Controller controller;
-  private final ThreadSafeStdOut outMsg = new ThreadSafeStdOut();
+  private Console console = new Console();
 
   /**
    * Starts the interpreter
@@ -20,6 +19,7 @@ public class NonBlockingInterpreter implements Runnable {
 
     receivingCmds = true;
     controller = new Controller();
+    controller.addServerConnectionListener(console);
 
     new Thread(this).start();
   }
@@ -30,11 +30,11 @@ public class NonBlockingInterpreter implements Runnable {
       try {
         CmdLineParser cmdLine;
         try {
-          cmdLine = new CmdLineParser(readNextLine());
+          cmdLine = new CmdLineParser(console.readNextLine());
         } catch (InvalidCommandException e) {
           // Catching the exception here in order to not close the connection to the server
           // if the user is entering an invalid command.
-          outMsg.println(e.getMessage());
+          console.error(e.getMessage(), e);
           continue;
         }
 
@@ -48,7 +48,7 @@ public class NonBlockingInterpreter implements Runnable {
             controller.disconnect();
             break;
           case CONNECT:
-            controller.connect("127.0.0.1", 8080, new ConsoleOutput());
+            controller.connect("127.0.0.1", 8080);
             break;
           case START:
             controller.startGame();
@@ -57,27 +57,42 @@ public class NonBlockingInterpreter implements Runnable {
             try {
               controller.guess(cmdLine.getArg(0));
             } catch (IndexOutOfBoundsException e) {
-              outMsg.println("Invalid use of guess!\n" +
+              console.print("Invalid use of guess!\n" +
                 "The correct way is: \"guess <char|string>\"");
             }
             break;
         }
       } catch (Exception e) {
-        if (receivingCmds) outMsg.println(e.getMessage());
+        if (receivingCmds) console.error(e.getMessage(), e);
       }
     }
   }
 
-  private String readNextLine() {
-    outMsg.print(PROMPT);
-    return console.nextLine();
-  }
+  private class Console implements Listener {
+    private final ThreadSafeStdOut outMsg = new ThreadSafeStdOut();
+    private final Scanner console = new Scanner(System.in);
 
-  private class ConsoleOutput implements OutputHandler {
     @Override
-    public void handleMsg(String msg) {
+    public void print(String msg) {
       outMsg.println(msg);
       outMsg.print(PROMPT);
+    }
+
+    @Override
+    public void error(String error, Exception e) {
+      outMsg.println("ERROR:");
+      outMsg.println(error);
+    }
+
+    @Override
+    public void disconnect() {
+      print("You are now disconnected!");
+    }
+
+    String readNextLine() {
+      outMsg.print(PROMPT);
+
+      return console.nextLine();
     }
   }
 }
