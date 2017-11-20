@@ -19,7 +19,7 @@
   </build>
   <packaging>jar</packaging>
 
-  <name>hw1-hangman</name>
+  <name>hw2-hangman</name>
   <url>http://maven.apache.org</url>
 
   <properties>
