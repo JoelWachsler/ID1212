@@ -139,7 +139,7 @@ public class ServerConnection implements Runnable {
 
           if (!key.isValid()) continue;
 
-          if      (key.isConnectable())  completeConnection(key);
+          if      (key.isConnectable()) completeConnection(key);
           else if (key.isReadable())    receiveFromServer(key);
           else if (key.isWritable())    sendToServer(key);
         }

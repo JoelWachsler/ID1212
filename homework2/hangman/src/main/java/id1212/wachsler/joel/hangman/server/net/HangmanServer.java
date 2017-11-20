@@ -52,9 +52,9 @@ public class HangmanServer {
 
           if (!key.isValid()) continue;
 
-          if      (key.isAcceptable())  startClientHandler(key);
-          else if (key.isReadable())    receiveFromClient(key);
-          else if (key.isWritable())    sendToClient(key);
+          if      (key.isAcceptable()) startClientHandler(key);
+          else if (key.isReadable())   receiveFromClient(key);
+          else if (key.isWritable())   sendToClient(key);
         }
       }
 
