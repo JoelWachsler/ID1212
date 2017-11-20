@@ -1,5 +1,7 @@
 package id1212.wachsler.joel.hangman.server.net;
 
+import com.sun.istack.internal.NotNull;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.StandardSocketOptions;
@@ -7,6 +9,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.security.InvalidParameterException;
 import java.util.ArrayDeque;
 import java.util.Queue;
 
@@ -109,9 +112,15 @@ public class HangmanServer {
   /**
    * Adds a key to be read from at a later time.
    *
-   * @param clientKey The key to be read from.
+   * @param channelKey The key to be read from.
+   * @throws InvalidParameterException When the <code>SelectionKey</code> is null, invalid or not an instance of <code>SocketChannel</code>.
    */
-  void addPendingMsg(SelectionKey clientKey) {
-    pendingWrite.add(clientKey);
+  void addPendingMsg(@NotNull SelectionKey channelKey) throws InvalidParameterException {
+    if (channelKey == null) throw new InvalidParameterException("ChannelKey must be defined!");
+
+    if (!channelKey.isValid() || !(channelKey.channel() instanceof SocketChannel))
+      throw new InvalidParameterException("The channel key is invalid!");
+
+    pendingWrite.add(channelKey);
   }
 }

@@ -41,11 +41,19 @@ public class ClientHandler implements Runnable {
       switch (message.getType()) {
         case GUESS:
           System.out.println("A new guess is being processed: " + message.getBody());
-          sendGuessResponse(controller.guess(message.getBody()));
+          try {
+            sendGameResponse(controller.guess(message.getBody()));
+          } catch (Exception e) {
+            sendGameResponse(e.getMessage());
+          }
           break;
         case START:
           System.out.println("The client wants to start a new game instance.");
-          controller.startNewGameInstance();
+          try {
+            controller.startNewGameInstance();
+          } catch (Exception e) {
+            sendGameResponse(e.getMessage());
+          }
           break;
         case DISCONNECT:
           disconnectClient();
@@ -65,10 +73,10 @@ public class ClientHandler implements Runnable {
     }
   }
 
-  private void sendGuessResponse(String response) throws IOException, IllegalArgumentException {
+  private void sendGameResponse(String response) throws IOException, IllegalArgumentException {
     if (response == null) throw new IllegalArgumentException("Got a null response!");
 
-    addMsg(MessageType.GUESS_RESPONSE, response);
+    addMsg(MessageType.GAME_RESPONSE, response);
   }
 
   private void addMsg(MessageType guessResponse, String response) {
@@ -101,6 +109,9 @@ public class ClientHandler implements Runnable {
     if (msg.hasRemaining()) throw new IOException("The message could not be sent!");
   }
 
+  /**
+   * Closes the channel for the current client.
+   */
   void disconnectClient() {
     try {
       clientChannel.close();
@@ -109,6 +120,11 @@ public class ClientHandler implements Runnable {
     }
   }
 
+  /**
+   * Reads from the client channel and passes the instruction parsed from the message to another thread.
+   *
+   * @throws IOException When the client connection is unexpectedly closed.
+   */
   void receiveMsg() throws IOException {
     messageBuffer.clear();
     int readBytes = clientChannel.read(messageBuffer);
@@ -129,6 +145,11 @@ public class ClientHandler implements Runnable {
     return new String(bytes);
   }
 
+  /**
+   * Registers the channel key for the current client. Without it nothing will be sent back to the client.
+   *
+   * @param channelKey The <code>SelectionKey</code> instance for the channel of the current client.
+   */
   void registerKey(SelectionKey channelKey) {
     this.channelKey = channelKey;
   }
