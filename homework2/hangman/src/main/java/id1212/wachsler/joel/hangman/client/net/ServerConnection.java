@@ -116,7 +116,8 @@ public class ServerConnection implements Runnable {
   @Override
   public void run() {
     try {
-      socketChannel = SocketChannel.open();
+      socketChannel = SocketChannel.open(); // Create a new selector
+
       socketChannel.configureBlocking(false);
       socketChannel.connect(serverAddress);
       connected = true;
