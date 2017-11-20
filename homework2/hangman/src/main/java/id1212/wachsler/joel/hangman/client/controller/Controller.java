@@ -23,7 +23,7 @@ public class Controller {
    * @see ServerConnection#connect(String, int)
    */
   public void connect(String host, int port) {
-    CompletableFuture.runAsync(() -> serverConnection.connect(host, port));
+    serverConnection.connect(host, port);
   }
 
   /**
