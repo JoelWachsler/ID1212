@@ -116,12 +116,13 @@ public class ServerConnection implements Runnable {
   @Override
   public void run() {
     try {
+      selector = Selector.open(); // Create a new selector
+
       socketChannel = SocketChannel.open();
       socketChannel.configureBlocking(false);
       socketChannel.connect(serverAddress);
       connected = true;
 
-      selector = Selector.open();
       socketChannel.register(selector, SelectionKey.OP_CONNECT);
 
       while (connected) {
@@ -138,7 +139,7 @@ public class ServerConnection implements Runnable {
 
           if (!key.isValid()) continue;
 
-          if      (key.isConnectable())  completeConnection(key);
+          if      (key.isConnectable()) completeConnection(key);
           else if (key.isReadable())    receiveFromServer(key);
           else if (key.isWritable())    sendToServer(key);
         }

@@ -33,7 +33,7 @@ public class HangmanServer {
 
   private void serve() {
     try {
-      selector = Selector.open(); // Open a new selector
+      selector = Selector.open(); // Create a new selector
 
       listeningSocketChannel = ServerSocketChannel.open(); // Open server socket channel
       listeningSocketChannel.configureBlocking(false);
@@ -52,9 +52,9 @@ public class HangmanServer {
 
           if (!key.isValid()) continue;
 
-          if      (key.isAcceptable())  startClientHandler(key);
-          else if (key.isReadable())    receiveFromClient(key);
-          else if (key.isWritable())    sendToClient(key);
+          if      (key.isAcceptable()) startClientHandler(key);
+          else if (key.isReadable())   receiveFromClient(key);
+          else if (key.isWritable())   sendToClient(key);
         }
       }
 

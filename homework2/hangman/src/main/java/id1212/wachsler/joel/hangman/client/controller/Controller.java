@@ -44,14 +44,13 @@ public class Controller {
    * @see ServerConnection#sendGuess(String)
    */
   public void guess(String guessingWord) {
-    // Send async guess
-    CompletableFuture.runAsync(() -> serverConnection.sendGuess(guessingWord));
+    serverConnection.sendGuess(guessingWord);
   }
 
   /**
    * @see ServerConnection#startGame()
    */
   public void startGame() {
-    CompletableFuture.runAsync(() -> serverConnection.startGame());
+    serverConnection.startGame();
   }
 }
