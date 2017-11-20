@@ -9,6 +9,7 @@ import id1212.wachsler.joel.hangman.server.controller.Controller;
 
 import java.io.*;
 import java.nio.ByteBuffer;
+import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayDeque;
 import java.util.Queue;
@@ -24,6 +25,7 @@ public class ClientHandler implements Runnable {
   private final ByteBuffer messageBuffer = ByteBuffer.allocateDirect(Constants.MSG_MAX_LEN);
   private final MessageParser messageParser = new MessageParser();
   private final Queue<ByteBuffer> messageQueue = new ArrayDeque<>(); // Init capacity = 16
+  private SelectionKey channelKey;
 
   ClientHandler(SocketChannel clientChannel, HangmanServer server) {
     this.clientChannel = clientChannel;
@@ -76,7 +78,7 @@ public class ClientHandler implements Runnable {
       messageQueue.add(msg);
     }
 
-    server.addPendingMsg(this);
+    server.addPendingMsg(channelKey);
     server.wakeup();
   }
 
@@ -103,7 +105,7 @@ public class ClientHandler implements Runnable {
     try {
       clientChannel.close();
     } catch (IOException e) {
-      System.err.println("Couldn't disconnect a client!");
+      System.err.println("Something went wrong when trying to disconnect a client...");
     }
   }
 
@@ -127,4 +129,7 @@ public class ClientHandler implements Runnable {
     return new String(bytes);
   }
 
+  void registerKey(SelectionKey channelKey) {
+    this.channelKey = channelKey;
+  }
 }

@@ -7,6 +7,8 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.util.ArrayDeque;
+import java.util.Queue;
 
 public class HangmanServer {
   private static final int LINGER_TIME = 5000; // Time to keep on sending if the connection is closed
@@ -14,7 +16,7 @@ public class HangmanServer {
 
   private Selector selector;
   private ServerSocketChannel listeningSocketChannel;
-  private boolean send = false;
+  private final Queue<SelectionKey> pendingWrite = new ArrayDeque<>();
 
   /**
    * Initializes the HangmanServer
@@ -37,15 +39,7 @@ public class HangmanServer {
       listeningSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
 
       while (true) {
-        if (send) {
-          for (SelectionKey key : selector.keys()) {
-            if (key.channel() instanceof SocketChannel && key.isValid()) {
-              key.interestOps(SelectionKey.OP_WRITE);
-            }
-          }
-
-          send = false;
-        }
+        while (!pendingWrite.isEmpty()) pendingWrite.poll().interestOps(SelectionKey.OP_WRITE);
 
         selector.select(); // Blocking until at least one channel is selected
 
@@ -78,7 +72,7 @@ public class HangmanServer {
     clientChannel.configureBlocking(false);
 
     ClientHandler handler = new ClientHandler(clientChannel, this);
-    clientChannel.register(selector, SelectionKey.OP_READ, handler);
+    handler.registerKey(clientChannel.register(selector, SelectionKey.OP_READ, handler));
     clientChannel.setOption(StandardSocketOptions.SO_LINGER, LINGER_TIME);
   }
 
@@ -87,7 +81,7 @@ public class HangmanServer {
     try {
       clientHandler.receiveMsg();
     } catch (IOException clientClosedConn) {
-      System.out.println("A client closed the connection!");
+      System.out.println("A client closed their connection!");
       removeClient(clientKey);
     }
   }
@@ -117,8 +111,7 @@ public class HangmanServer {
    *
    * @param clientKey The key to be read from.
    */
-  void addPendingMsg(ClientHandler clientKey) {
-    //sendPending.add((SelectionKey) clientKey);
-    send = true;
+  void addPendingMsg(SelectionKey clientKey) {
+    pendingWrite.add(clientKey);
   }
 }
