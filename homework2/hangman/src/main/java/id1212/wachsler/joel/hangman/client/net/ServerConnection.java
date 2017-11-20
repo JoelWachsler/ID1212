@@ -109,6 +109,8 @@ public class ServerConnection implements Runnable {
       connected = true;
 
       selector = Selector.open();
+      socketChannel.register(selector, SelectionKey.OP_CONNECT);
+
       while (connected) {
         if (timeToSend) {
           socketChannel.keyFor(selector).interestOps(SelectionKey.OP_WRITE);
@@ -123,7 +125,7 @@ public class ServerConnection implements Runnable {
 
           if (!key.isValid()) continue;
 
-          if      (key.isAcceptable())  completeConnection(key);
+          if      (key.isConnectable())  completeConnection(key);
           else if (key.isReadable())    receiveFromServer(key);
           else if (key.isWritable())    sendToServer(key);
         }
@@ -155,7 +157,7 @@ public class ServerConnection implements Runnable {
     String receivedMsg = extractMsgFromBuffer();
     messageParser.addMessage(receivedMsg);
 
-    while (messageParser.hasNextMsg()) {
+    while (messageParser.hasNext()) {
       String msg = messageParser.nextMsg();
 
       System.out.println(msg);
@@ -172,5 +174,6 @@ public class ServerConnection implements Runnable {
   private void completeConnection(SelectionKey key) throws IOException {
     socketChannel.finishConnect();
     key.interestOps(SelectionKey.OP_WRITE);
+    System.out.println("Connected!");
   }
 }

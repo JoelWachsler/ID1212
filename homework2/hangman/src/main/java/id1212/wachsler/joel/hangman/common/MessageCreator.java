@@ -12,7 +12,7 @@ public class MessageCreator {
    *
    * @param type The type of the message.
    * @param body The body of the message.
-   * @return <code>ByteBuffer</code> the encapsulated message.
+   * @return <code>ByteBuffer</code> with the encapsulated message.
    */
   public static ByteBuffer createMessage(MessageType type, String body) {
     StringJoiner joiner = new StringJoiner(Constants.MSG_TYPE_DELIMITER);

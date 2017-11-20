@@ -20,7 +20,7 @@ public class Controller {
       } catch (IOException e) {
         throw new UncheckedIOException(e);
       }
-    }).thenRun(() -> outputHandler.handleMsg("Connected to " + host + ":" + port));
+    });
   }
 
   /**

@@ -12,6 +12,7 @@ import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayDeque;
 import java.util.Queue;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ForkJoinPool;
 
 /**
@@ -19,7 +20,6 @@ import java.util.concurrent.ForkJoinPool;
  */
 public class ClientHandler implements Runnable {
   private final SocketChannel clientChannel;
-  private boolean connected;
   private Controller controller = new Controller();
   private final ByteBuffer messageBuffer = ByteBuffer.allocateDirect(Constants.MSG_MAX_LEN);
   private final MessageParser messageParser = new MessageParser();
@@ -30,37 +30,34 @@ public class ClientHandler implements Runnable {
     this.clientChannel = clientChannel;
     this.serverSelector = serverSelector;
     controller.newHangmanGame();
-    connected = true;
   }
 
   @Override
   public void run() {
-    while (connected) {
-      try {
-        Message message = new Message(messageParser.nextMsg());
+    while (messageParser.hasNext()) try {
+      Message message = new Message(messageParser.nextMsg());
 
-        switch (message.getType()) {
-          case GUESS:
-            System.out.println("A new guess is being processed: " + message.getBody());
-            sendGuessResponse(controller.guess(message.getBody()));
-            break;
-          case START:
-            System.out.println("The client wants to start a new game instance.");
-            controller.startNewGameInstance();
-            break;
-          case DISCONNECT:
-            disconnectClient();
-            break;
-          default:
-            throw new StreamCorruptedException("Received a corrupt message: " + message.getType());
-        }
-      } catch (EOFException e) {
-        System.err.println("The client unexpectedly disconnected!");
-        disconnectClient();
-      } catch (IOException e) {
-        System.err.println(e.getMessage());
-        disconnectClient();
+      switch (message.getType()) {
+        case GUESS:
+          System.out.println("A new guess is being processed: " + message.getBody());
+          sendGuessResponse(controller.guess(message.getBody()));
+          break;
+        case START:
+          System.out.println("The client wants to start a new game instance.");
+          controller.startNewGameInstance();
+          break;
+        case DISCONNECT:
+          disconnectClient();
+          break;
+        default:
+          throw new StreamCorruptedException("Received a corrupt message: " + message.getType());
       }
+    } catch (EOFException e) {
+      System.err.println("The client unexpectedly disconnected...");
+      disconnectClient();
+    } catch (IOException e) {
+      System.err.println(e.getMessage());
+      disconnectClient();
     }
   }
 
@@ -116,18 +113,21 @@ public class ClientHandler implements Runnable {
     String receivedMsg = extractMsgFromBuffer();
 
     messageParser.addMessage(receivedMsg);
-    ForkJoinPool.commonPool().execute(this);
+    CompletableFuture.runAsync(this);
+//    ForkJoinPool.commonPool().execute(this);
   }
 
   private String extractMsgFromBuffer() {
     messageBuffer.flip();
     byte[] bytes = new byte[messageBuffer.remaining()];
+    messageBuffer.get(bytes);
 
-    return String.valueOf(messageBuffer.get(bytes));
+    return new String(bytes);
   }
 
   /**
-   * Parses and encapsulates a message from a string.
+   * Parses and encapsulates a message from the provided string.
+   * A message must contain a <code>MessageType</code> and a message body.
    */
   private static class Message {
     private MessageType msgType;
@@ -138,10 +138,14 @@ public class ClientHandler implements Runnable {
     }
 
     private void parse(String unparsedMsg) {
-      String[] splitMsg = unparsedMsg.split(Constants.MSG_TYPE_DELIMITER);
+      try {
+        String[] splitMsg = unparsedMsg.split(Constants.MSG_TYPE_DELIMITER);
 
-      msgType = MessageType.valueOf(splitMsg[Constants.MSG_TYPE_INDEX].toUpperCase());
-      msgBody = splitMsg[Constants.MSG_BODY_INDEX];
+        msgType = MessageType.valueOf(splitMsg[Constants.MSG_TYPE_INDEX].toUpperCase());
+        msgBody = splitMsg[Constants.MSG_BODY_INDEX];
+      } catch (Exception e) {
+        System.err.println("Unable to parse the following message: " + unparsedMsg);
+      }
     }
 
     MessageType getType() {

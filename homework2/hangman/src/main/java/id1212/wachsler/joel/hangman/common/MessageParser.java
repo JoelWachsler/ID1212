@@ -32,12 +32,12 @@ public class MessageParser {
    * @return <code>true</code> if there is another message.
    *         <code>false</code> if there isn't.
    */
-  public synchronized boolean hasNextMsg() {
+  public synchronized boolean hasNext() {
     return !messages.isEmpty();
   }
 
   private boolean extractMessage() {
-    String currentReceivedChars = this.receivedChars.toString();
+    String currentReceivedChars = receivedChars.toString();
     String[] splitAtHeaderLen = currentReceivedChars.split(Constants.MSG_LEN_DELIMITER);
 
     if (splitAtHeaderLen.length < 2) return false; // Only parts of the message has been received
@@ -48,7 +48,6 @@ public class MessageParser {
     String msg = splitAtHeaderLen[1].substring(0, msgLen);
     messages.add(msg); // Add to complete messages
 
-    // TODO: Check if this works!
     receivedChars.delete(0, currentReceivedChars.length()); // Remove the extracted message
 
     return true;
