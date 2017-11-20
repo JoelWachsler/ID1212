@@ -44,7 +44,6 @@ public class Controller {
    * @see ServerConnection#sendGuess(String)
    */
   public void guess(String guessingWord) {
-    // Send async guess
     serverConnection.sendGuess(guessingWord);
   }
 
