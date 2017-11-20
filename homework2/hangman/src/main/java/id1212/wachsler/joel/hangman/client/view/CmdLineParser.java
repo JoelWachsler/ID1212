@@ -31,18 +31,15 @@ class CmdLineParser {
 
     String[] splitText = enteredLine.split(PARAM_DELIMITER);
 
-    switch (splitText[0].toUpperCase()) {
-      case "GUESS":   cmd = Command.GUESS;    break;
-      case "START":   cmd = Command.START;    break;
-      case "CONNECT": cmd = Command.CONNECT;  break;
-      case "QUIT":    cmd = Command.QUIT;     break;
-      default:
-        throw new InvalidCommandException("\"" + splitText[0].toLowerCase() + "\" is not a valid command!\n" +
-          "The valid commands are as follows:\n" +
-          "\"connect\" (connect to the server)\n" +
-          "\"start\" (start a game instance)\n" +
-          "\"guess <char|string>\" (make a guess!)\n" +
-          "\"quit\" (disconnect from the server)");
+    try {
+      cmd = Command.valueOf(splitText[0].toUpperCase());
+    } catch (IllegalArgumentException e) {
+      throw new InvalidCommandException("\"" + splitText[0].toLowerCase() + "\" is not a valid command!\n" +
+        "The valid commands are as follows:\n" +
+        "\"connect\" (connect to the server)\n" +
+        "\"start\" (start a game instance)\n" +
+        "\"guess <char|string>\" (make a guess!)\n" +
+        "\"quit\" (disconnect from the server)");
     }
   }
 

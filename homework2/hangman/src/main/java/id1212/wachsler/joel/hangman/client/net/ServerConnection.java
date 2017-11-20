@@ -110,6 +110,9 @@ public class ServerConnection implements Runnable {
     return connected;
   }
 
+  /**
+   * The non-blocking communication handler between the server and client, handled by a single thread.
+   */
   @Override
   public void run() {
     try {
@@ -189,14 +192,10 @@ public class ServerConnection implements Runnable {
   }
 
   private void alertListeners(String msg) {
-    for (Listener listener : listeners) {
-      listener.print(msg);
-    }
+    listeners.forEach(listener -> listener.print(msg));
   }
 
   private void alertError(String error, Exception e) {
-    for (Listener listener : listeners) {
-      listener.error(error, e);
-    }
+    listeners.forEach(listener -> listener.error(error, e));
   }
 }

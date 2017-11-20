@@ -57,8 +57,8 @@ public class NonBlockingInterpreter implements Runnable {
             try {
               controller.guess(cmdLine.getArg(0));
             } catch (IndexOutOfBoundsException e) {
-              console.print("Invalid use of guess!\n" +
-                "The correct way is: \"guess <char|string>\"");
+              console.error("Invalid use of guess!\n" +
+                "The correct way is: \"guess <char|string>\"", e);
             }
             break;
         }

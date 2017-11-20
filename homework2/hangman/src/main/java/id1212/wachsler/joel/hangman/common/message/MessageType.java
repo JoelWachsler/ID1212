@@ -9,9 +9,9 @@ public enum MessageType {
    */
   START,
   /**
-   * The server response of a hangman guess.
+   * The server response for a client game request.
    */
-  GUESS_RESPONSE,
+  GAME_RESPONSE,
   /**
    * A client guess of a hangman word.
    */

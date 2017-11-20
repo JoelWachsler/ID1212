@@ -8,7 +8,7 @@ public class Constants {
   /**
    * The maximum length of a message, used in order to avoid buffer resizing on the fly.
    */
-  public static final int MSG_MAX_LEN = 8192;
+  public static final int MSG_MAX_LEN = 256;
   /**
    * Delimiter between the message body and type.
    */
