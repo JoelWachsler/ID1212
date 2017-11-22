@@ -121,7 +121,7 @@ public class HangmanServer {
     if (!channelKey.isValid() || !(channelKey.channel() instanceof SocketChannel))
       throw new InvalidParameterException("The channel key is invalid!");
     
-    syncronized(pendingWrite) {
+    synchronized (pendingWrite) {
       pendingWrite.add(channelKey);
     }
   }
