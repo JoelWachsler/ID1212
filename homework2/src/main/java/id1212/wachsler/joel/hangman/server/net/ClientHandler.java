@@ -9,7 +9,6 @@ import id1212.wachsler.joel.hangman.server.controller.Controller;
 
 import java.io.*;
 import java.nio.ByteBuffer;
-import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayDeque;
 import java.util.Queue;
@@ -25,7 +24,6 @@ public class ClientHandler implements Runnable {
   private final ByteBuffer messageBuffer = ByteBuffer.allocateDirect(Constants.MSG_MAX_LEN);
   private final MessageParser messageParser = new MessageParser();
   private final Queue<ByteBuffer> messageQueue = new ArrayDeque<>(); // Init capacity = 16
-  private SelectionKey channelKey;
 
   ClientHandler(SocketChannel clientChannel, HangmanServer server) {
     this.clientChannel = clientChannel;
@@ -86,8 +84,7 @@ public class ClientHandler implements Runnable {
       messageQueue.add(msg);
     }
 
-    server.addPendingMsg(channelKey);
-    server.wakeup();
+    server.addPendingMsg(this);
   }
 
   /**
@@ -143,14 +140,5 @@ public class ClientHandler implements Runnable {
     messageBuffer.get(bytes);
 
     return new String(bytes);
-  }
-
-  /**
-   * Registers the channel key for the current client. Without it nothing will be sent back to the client.
-   *
-   * @param channelKey The <code>SelectionKey</code> instance for the channel of the current client.
-   */
-  void registerKey(SelectionKey channelKey) {
-    this.channelKey = channelKey;
   }
 }

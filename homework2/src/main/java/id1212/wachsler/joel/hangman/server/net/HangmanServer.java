@@ -1,7 +1,5 @@
 package id1212.wachsler.joel.hangman.server.net;
 
-import com.sun.istack.internal.NotNull;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.StandardSocketOptions;
@@ -11,6 +9,8 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.security.InvalidParameterException;
 import java.util.ArrayDeque;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Queue;
 
 public class HangmanServer {
@@ -18,8 +18,8 @@ public class HangmanServer {
   private static final int port = 8080; // Server default listening port
 
   private Selector selector;
-  private ServerSocketChannel listeningSocketChannel;
   private final Queue<SelectionKey> pendingWrite = new ArrayDeque<>();
+  private final Map<ClientHandler, SelectionKey> reverseKeyLookup = new HashMap<>();
 
   /**
    * Initializes the HangmanServer
@@ -35,7 +35,7 @@ public class HangmanServer {
     try {
       selector = Selector.open(); // Create a new selector
 
-      listeningSocketChannel = ServerSocketChannel.open(); // Open server socket channel
+      ServerSocketChannel listeningSocketChannel = ServerSocketChannel.open(); // Open server socket channel
       listeningSocketChannel.configureBlocking(false);
       listeningSocketChannel.bind(new InetSocketAddress(port));
       // Register channel to selector and we're interested in accepting connections
@@ -75,7 +75,8 @@ public class HangmanServer {
     clientChannel.configureBlocking(false);
 
     ClientHandler handler = new ClientHandler(clientChannel, this);
-    handler.registerKey(clientChannel.register(selector, SelectionKey.OP_READ, handler));
+    SelectionKey clientKey = clientChannel.register(selector, SelectionKey.OP_READ, handler);
+    reverseKeyLookup.put(handler, clientKey);
     clientChannel.setOption(StandardSocketOptions.SO_LINGER, LINGER_TIME);
   }
 
@@ -100,27 +101,25 @@ public class HangmanServer {
     ClientHandler clientHandler = (ClientHandler) clientKey.attachment();
     clientHandler.disconnectClient();
     clientKey.cancel(); // Make the key invalid
-  }
-
-  /**
-   * Wakes the server.
-   */
-  void wakeup() {
-    selector.wakeup();
+    reverseKeyLookup.remove(clientHandler);
   }
 
   /**
    * Adds a key to be read from at a later time.
    *
-   * @param channelKey The key to be read from.
+   * @param client The client who we have a ready message to write to.
    * @throws InvalidParameterException When the <code>SelectionKey</code> is null, invalid or not an instance of <code>SocketChannel</code>.
    */
-  void addPendingMsg(@NotNull SelectionKey channelKey) throws InvalidParameterException {
-    if (channelKey == null) throw new InvalidParameterException("ChannelKey must be defined!");
+  void addPendingMsg(ClientHandler client) throws InvalidParameterException {
+    SelectionKey channelKey = reverseKeyLookup.get(client);
 
     if (!channelKey.isValid() || !(channelKey.channel() instanceof SocketChannel))
       throw new InvalidParameterException("The channel key is invalid!");
+    
+    synchronized (pendingWrite) {
+      pendingWrite.add(channelKey);
+    }
 
-    pendingWrite.add(channelKey);
+    selector.wakeup();
   }
 }
