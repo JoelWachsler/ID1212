@@ -3,7 +3,9 @@ package id1212.wachsler.joel.rmi_and_databases.client.view;
 import id1212.wachsler.joel.rmi_and_databases.common.Credentials;
 import id1212.wachsler.joel.rmi_and_databases.common.FileServer;
 
+import javax.security.auth.login.LoginException;
 import java.rmi.RemoteException;
+import java.sql.SQLException;
 import java.util.Scanner;
 
 public class Interpreter implements Runnable {
@@ -22,6 +24,8 @@ public class Interpreter implements Runnable {
   @Override
   public void run() {
     CmdLineParser parser;
+    long userId;
+
     while (running) {
       try {
         parser = new CmdLineParser(console.readNextLine());
@@ -33,8 +37,20 @@ public class Interpreter implements Runnable {
       try {
         switch (parser.getCmd()) {
           case LOGIN:
-            Credentials credentials = new Credentials();
-            server.login(credentials);
+            try {
+              String username = parser.getArg(0);
+              String password = parser.getArg(1);
+              Credentials credentials = new Credentials(username, password);
+              userId = server.login(credentials);
+              console.print("We're now logged in! The id is: " + userId);
+            } catch (InvalidCommandException e) {
+              console.error(
+                "Invalid use of the login command!\n" +
+                "The correct way is:\n" +
+                "login <username> <password>", e);
+            } catch (LoginException e) {
+              console.error(e.getMessage(), e);
+            }
             break;
           case QUIT:
             break;

@@ -1,5 +1,6 @@
 package id1212.wachsler.joel.rmi_and_databases.server.startup;
 
+import id1212.wachsler.joel.rmi_and_databases.common.Credentials;
 import id1212.wachsler.joel.rmi_and_databases.common.FileServer;
 import id1212.wachsler.joel.rmi_and_databases.server.controller.Controller;
 
@@ -8,9 +9,11 @@ import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.sql.SQLException;
 
 public class ServerMain {
-  private final String datasource = "users";
+  private final String datasource = "file_server";
+  private final Credentials dbLogin = new Credentials("root", "");
 
   public static void main(String[] args) {
     try {
@@ -23,14 +26,14 @@ public class ServerMain {
     }
   }
 
-  private void startRMIServant() throws RemoteException, MalformedURLException {
+  private void startRMIServant() throws RemoteException, MalformedURLException, ClassNotFoundException, SQLException, InstantiationException, IllegalAccessException {
     try {
       LocateRegistry.getRegistry().list();
     } catch (RemoteException e) {
       LocateRegistry.createRegistry(Registry.REGISTRY_PORT);
     }
 
-    Controller controller = new Controller(datasource);
+    Controller controller = new Controller(datasource, dbLogin);
     Naming.rebind(FileServer.REGISTRY_NAME ,controller);
   }
 }
