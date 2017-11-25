@@ -3,6 +3,7 @@ package id1212.wachsler.joel.rmi_and_databases.common;
 import javax.security.auth.login.LoginException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
+import java.util.List;
 
 public interface FileServer extends Remote {
   String REGISTRY_NAME = "file_server";
@@ -14,4 +15,6 @@ public interface FileServer extends Remote {
   long login(CredentialDTO credentialDTO) throws RemoteException, LoginException;
 
   long register(CredentialDTO credentialDTO) throws RemoteException, RegisterException;
+
+  List<FileInfoDTO> list(long userId) throws RemoteException, IllegalAccessException;
 }

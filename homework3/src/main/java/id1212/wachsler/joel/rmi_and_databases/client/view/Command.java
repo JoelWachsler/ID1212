@@ -5,13 +5,17 @@ package id1212.wachsler.joel.rmi_and_databases.client.view;
  */
 public enum Command {
   /**
-   * Try to login.
+   * Login.
    */
   LOGIN,
   /**
-   * Try to login.
+   * Register.
    */
   REGISTER,
+  /**
+   * Lists all files in the directory
+   */
+  LIST,
   /**
    * Leave the application.
    */

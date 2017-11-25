@@ -1,6 +1,7 @@
 package id1212.wachsler.joel.rmi_and_databases.client.view;
 
 import id1212.wachsler.joel.rmi_and_databases.common.CredentialDTO;
+import id1212.wachsler.joel.rmi_and_databases.common.FileInfoDTO;
 import id1212.wachsler.joel.rmi_and_databases.common.FileServer;
 import id1212.wachsler.joel.rmi_and_databases.common.RegisterException;
 
@@ -38,13 +39,26 @@ public class Interpreter implements Runnable {
         switch (parser.getCmd()) {
           case LOGIN: login(); break;
           case REGISTER: register(); break;
+          case LIST:
+            list();
+            break;
           case QUIT:
             console.disconnect();
+            running = false;
             break;
         }
       } catch (RemoteException e) {
         console.error(e.getMessage(), e);
       }
+    }
+  }
+
+  private void list() {
+    try {
+      for (FileInfoDTO file : server.list(userId))
+        console.print(file.toString());
+    } catch (RemoteException | IllegalAccessException e) {
+      console.error(e.getMessage(), e);
     }
   }
 
