@@ -1,6 +1,6 @@
 package id1212.wachsler.joel.rmi_and_databases.server.startup;
 
-import id1212.wachsler.joel.rmi_and_databases.common.Credentials;
+import id1212.wachsler.joel.rmi_and_databases.common.CredentialDTO;
 import id1212.wachsler.joel.rmi_and_databases.common.FileServer;
 import id1212.wachsler.joel.rmi_and_databases.server.controller.Controller;
 
@@ -13,7 +13,7 @@ import java.sql.SQLException;
 
 public class ServerMain {
   private final String datasource = "file_server";
-  private final Credentials dbLogin = new Credentials("root", "");
+  private final CredentialDTO dbLogin = new CredentialDTO("root", "");
 
   public static void main(String[] args) {
     try {

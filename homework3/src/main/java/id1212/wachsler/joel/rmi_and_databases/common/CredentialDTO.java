@@ -5,11 +5,11 @@ import java.io.Serializable;
 /**
  * Class used to encapsulate the login credentials.
  */
-public class Credentials implements Serializable {
+public class CredentialDTO implements Serializable {
   private String username;
   private String password;
 
-  public Credentials(String username, String password) {
+  public CredentialDTO(String username, String password) {
     this.username = username;
     this.password = password;
   }

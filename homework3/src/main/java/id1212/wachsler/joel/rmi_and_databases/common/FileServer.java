@@ -11,5 +11,7 @@ public interface FileServer extends Remote {
    * A user can register at the catalog, unregister, login and logout.
    * To be allowed to upload/download files, a user must be registered and logged in.
    */
-  long login(Credentials credentials) throws RemoteException, LoginException;
+  long login(CredentialDTO credentialDTO) throws RemoteException, LoginException;
+
+  long register(CredentialDTO credentialDTO) throws RemoteException, RegisterException;
 }
