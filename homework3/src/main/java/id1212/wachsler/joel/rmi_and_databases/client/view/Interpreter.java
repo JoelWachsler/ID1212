@@ -1,14 +1,12 @@
 package id1212.wachsler.joel.rmi_and_databases.client.view;
 
+import id1212.wachsler.joel.rmi_and_databases.client.controller.Controller;
 import id1212.wachsler.joel.rmi_and_databases.common.*;
 import id1212.wachsler.joel.rmi_and_databases.common.dto.CredentialDTO;
 import id1212.wachsler.joel.rmi_and_databases.common.dto.FileInfoDTO;
 import id1212.wachsler.joel.rmi_and_databases.common.exceptions.RegisterException;
 
-import javax.security.auth.login.LoginException;
 import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.nio.channels.SocketChannel;
 import java.rmi.RemoteException;
 import java.util.Scanner;
 
@@ -16,8 +14,8 @@ public class Interpreter implements Runnable {
   private FileServer server;
   private boolean running = false;
   private Console console = new Console();
-  private long userId;
   private CmdLineParser parser;
+  private Controller controller = new Controller();
 
   /**
    * Starts a new interpreter on a separate thread.
@@ -53,6 +51,7 @@ public class Interpreter implements Runnable {
           case LIST:      list();     break;
           case UPLOAD:    upload();   break;
           case QUIT:
+            controller.endConnection();
             console.disconnect();
             running = false;
             break;
@@ -62,6 +61,10 @@ public class Interpreter implements Runnable {
         }
       } catch (RemoteException e) {
         console.error(e.getMessage(), e);
+      } catch (IOException e) {
+        console.error("Failed to disconnect!", e);
+      } catch (IllegalAccessException e) {
+        e.printStackTrace();
       }
     }
   }
@@ -69,33 +72,24 @@ public class Interpreter implements Runnable {
   private void upload() {
     try {
       String file = parser.getArg(0);
-
-      server.initUpload(file);
-
-      FileTransferHandler handler = new FileTransferHandler(createSocketChannel());
-      handler.sendFile(String.format("client_files/%s", file));
+      String filename = parser.getArg(1);
+      controller.upload(file, filename);
+      console.print("File uploaded!");
     } catch (IOException e) {
       e.printStackTrace();
     } catch (InvalidCommandException e) {
       console.error(
         "Invalid use of the upload command!\n" +
           "the correct way is:\n" +
-          "upload <filename>", e);
+          "upload <local filename> <upload filename>", e);
+    } catch (Exception e) {
+      console.error(e.getMessage(), e);
     }
-  }
-
-  private SocketChannel createSocketChannel() throws IOException {
-    SocketChannel socketChannel = SocketChannel.open();
-    console.print("Trying to connect...");
-    socketChannel.connect(new InetSocketAddress(Constants.SERVER_ADDRESS, Constants.SERVER_SOCKET_PORT));
-    console.print("Connected!");
-
-    return socketChannel;
   }
 
   private void list() {
     try {
-      for (FileInfoDTO file : server.list(userId))
+      for (FileInfoDTO file : server.list(controller.getUserId()))
         console.print(file.toString());
     } catch (RemoteException | IllegalAccessException e) {
       console.error(e.getMessage(), e);
@@ -105,29 +99,30 @@ public class Interpreter implements Runnable {
   private void register() throws RemoteException {
     try {
       CredentialDTO credentialDTO = createCredentials(parser);
-      userId = server.register(credentialDTO);
+      long userId = server.register(credentialDTO);
+      controller.authenticated(userId);
       console.print("You're now registered and your id is: " + userId);
     } catch (InvalidCommandException e) {
       console.error(
         "Invalid use of the register command!\n" +
           "the correct way is:\n" +
           "register <username> <password>", e);
-    } catch (RegisterException e) {
+    } catch (RegisterException | IOException e) {
       console.error(e.getMessage(), e);
     }
   }
 
   private void login() throws RemoteException {
     try {
-      CredentialDTO credentialDTO = createCredentials(parser);
-      userId = server.login(credentialDTO);
-      console.print("You're now logged in! The id is: " + userId);
+      long userId = server.login(createCredentials(parser));
+      controller.authenticated(userId);
+      console.print("You're now logged in! Your id is: " + userId);
     } catch (InvalidCommandException e) {
       console.error(
         "Invalid use of the login command!\n" +
           "The correct way is:\n" +
           "login <username> <password>", e);
-    } catch (LoginException e) {
+    } catch (Exception e) {
       console.error(e.getMessage(), e);
     }
   }

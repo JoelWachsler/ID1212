@@ -27,4 +27,16 @@ public class FileInfoDTO implements Serializable {
     return String.format("File: %s, Size: %d, Owner: %s, Public: %s, Read: %s, Write: %s",
       name, size, owner, isPublic, read, write);
   }
+
+  public String getOwner() {
+    return owner;
+  }
+
+  public boolean isPublic() {
+    return isPublic;
+  }
+
+  public boolean isWritable() {
+    return write;
+  }
 }
