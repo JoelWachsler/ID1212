@@ -1,6 +1,6 @@
 package id1212.wachsler.joel.rmi_and_databases.server.catalog;
 
-import id1212.wachsler.joel.rmi_and_databases.common.FileInfoDTO;
+import id1212.wachsler.joel.rmi_and_databases.common.dto.FileInfoDTO;
 import id1212.wachsler.joel.rmi_and_databases.server.integration.FileDAO;
 import id1212.wachsler.joel.rmi_and_databases.server.user.User;
 

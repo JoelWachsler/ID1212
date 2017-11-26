@@ -1,8 +1,8 @@
 package id1212.wachsler.joel.rmi_and_databases.server.user;
 
 import com.sun.istack.internal.NotNull;
-import id1212.wachsler.joel.rmi_and_databases.common.CredentialDTO;
-import id1212.wachsler.joel.rmi_and_databases.common.RegisterException;
+import id1212.wachsler.joel.rmi_and_databases.common.dto.CredentialDTO;
+import id1212.wachsler.joel.rmi_and_databases.common.exceptions.RegisterException;
 import id1212.wachsler.joel.rmi_and_databases.server.integration.UserDAO;
 
 import javax.security.auth.login.LoginException;

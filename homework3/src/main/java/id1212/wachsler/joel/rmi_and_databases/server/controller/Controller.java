@@ -1,24 +1,23 @@
 package id1212.wachsler.joel.rmi_and_databases.server.controller;
 
-import id1212.wachsler.joel.rmi_and_databases.common.CredentialDTO;
-import id1212.wachsler.joel.rmi_and_databases.common.FileInfoDTO;
-import id1212.wachsler.joel.rmi_and_databases.common.FileServer;
-import id1212.wachsler.joel.rmi_and_databases.common.RegisterException;
+import id1212.wachsler.joel.rmi_and_databases.common.*;
+import id1212.wachsler.joel.rmi_and_databases.common.dto.CredentialDTO;
+import id1212.wachsler.joel.rmi_and_databases.common.dto.FileInfoDTO;
+import id1212.wachsler.joel.rmi_and_databases.common.exceptions.RegisterException;
 import id1212.wachsler.joel.rmi_and_databases.server.catalog.Catalog;
 import id1212.wachsler.joel.rmi_and_databases.server.integration.UserDAO;
 import id1212.wachsler.joel.rmi_and_databases.server.user.User;
 
 import javax.security.auth.login.LoginException;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.Channels;
-import java.nio.channels.FileChannel;
-import java.nio.channels.WritableByteChannel;
+import java.net.InetSocketAddress;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Controller for the file server which is directly called by other nodes.
@@ -55,18 +54,25 @@ public class Controller extends UnicastRemoteObject implements FileServer {
   }
 
   @Override
-  public void upload(String filename) {
-    try {
-      FileInputStream inf = new FileInputStream(filename);
-      try (FileChannel channel = inf.getChannel()) {
-        MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
-        WritableByteChannel out = Channels.newChannel(System.out);
-        while (buffer.hasRemaining()) {
-          out.write(buffer);
-        }
+  public void initUpload(String filename) throws RemoteException {
+    CompletableFuture.runAsync(() -> {
+      try {
+        ServerSocketChannel serverSocket = ServerSocketChannel.open();
+        serverSocket.socket().bind(new InetSocketAddress(Constants.SERVER_SOCKET_PORT));
+        System.out.println("Listening...");
+        SocketChannel client = serverSocket.accept();
+
+        System.out.println("Connection established: " + client.getRemoteAddress());
+
+        FileTransferHandler receiver = new FileTransferHandler(client);
+        receiver.receiveFile(String.format("server_files/%s", filename));
+
+        client.close();
+        serverSocket.close();
+        System.out.println("Connection closed!");
+      } catch (IOException e) {
+        e.printStackTrace();
       }
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
+    });
   }
 }

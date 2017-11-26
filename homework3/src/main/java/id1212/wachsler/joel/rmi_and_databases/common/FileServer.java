@@ -1,5 +1,9 @@
 package id1212.wachsler.joel.rmi_and_databases.common;
 
+import id1212.wachsler.joel.rmi_and_databases.common.dto.CredentialDTO;
+import id1212.wachsler.joel.rmi_and_databases.common.dto.FileInfoDTO;
+import id1212.wachsler.joel.rmi_and_databases.common.exceptions.RegisterException;
+
 import javax.security.auth.login.LoginException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
@@ -41,5 +45,5 @@ public interface FileServer extends Remote {
    */
   List<FileInfoDTO> list(long userId) throws RemoteException, IllegalAccessException;
 
-  void upload(String filename) throws RemoteException;
+  void initUpload(String filename) throws RemoteException;
 }

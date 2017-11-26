@@ -1,11 +1,14 @@
 package id1212.wachsler.joel.rmi_and_databases.client.view;
 
-import id1212.wachsler.joel.rmi_and_databases.common.CredentialDTO;
-import id1212.wachsler.joel.rmi_and_databases.common.FileInfoDTO;
-import id1212.wachsler.joel.rmi_and_databases.common.FileServer;
-import id1212.wachsler.joel.rmi_and_databases.common.RegisterException;
+import id1212.wachsler.joel.rmi_and_databases.common.*;
+import id1212.wachsler.joel.rmi_and_databases.common.dto.CredentialDTO;
+import id1212.wachsler.joel.rmi_and_databases.common.dto.FileInfoDTO;
+import id1212.wachsler.joel.rmi_and_databases.common.exceptions.RegisterException;
 
 import javax.security.auth.login.LoginException;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.nio.channels.SocketChannel;
 import java.rmi.RemoteException;
 import java.util.Scanner;
 
@@ -15,7 +18,6 @@ public class Interpreter implements Runnable {
   private Console console = new Console();
   private long userId;
   private CmdLineParser parser;
-
 
   /**
    * Starts a new interpreter on a separate thread.
@@ -66,10 +68,29 @@ public class Interpreter implements Runnable {
 
   private void upload() {
     try {
-      server.upload("./test.xml");
-    } catch (RemoteException e) {
+      String file = parser.getArg(0);
+
+      server.initUpload(file);
+
+      FileTransferHandler handler = new FileTransferHandler(createSocketChannel());
+      handler.sendFile(String.format("client_files/%s", file));
+    } catch (IOException e) {
       e.printStackTrace();
+    } catch (InvalidCommandException e) {
+      console.error(
+        "Invalid use of the upload command!\n" +
+          "the correct way is:\n" +
+          "upload <filename>", e);
     }
+  }
+
+  private SocketChannel createSocketChannel() throws IOException {
+    SocketChannel socketChannel = SocketChannel.open();
+    console.print("Trying to connect...");
+    socketChannel.connect(new InetSocketAddress(Constants.SERVER_ADDRESS, Constants.SERVER_SOCKET_PORT));
+    console.print("Connected!");
+
+    return socketChannel;
   }
 
   private void list() {
@@ -89,7 +110,7 @@ public class Interpreter implements Runnable {
     } catch (InvalidCommandException e) {
       console.error(
         "Invalid use of the register command!\n" +
-          "The correct way is:\n" +
+          "the correct way is:\n" +
           "register <username> <password>", e);
     } catch (RegisterException e) {
       console.error(e.getMessage(), e);

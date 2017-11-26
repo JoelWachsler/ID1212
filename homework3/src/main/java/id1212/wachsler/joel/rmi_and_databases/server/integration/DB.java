@@ -1,6 +1,6 @@
 package id1212.wachsler.joel.rmi_and_databases.server.integration;
 
-import id1212.wachsler.joel.rmi_and_databases.common.CredentialDTO;
+import id1212.wachsler.joel.rmi_and_databases.common.dto.CredentialDTO;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

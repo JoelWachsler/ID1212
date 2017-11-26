@@ -1,4 +1,4 @@
-package id1212.wachsler.joel.rmi_and_databases.common;
+package id1212.wachsler.joel.rmi_and_databases.common.dto;
 
 import java.io.Serializable;
 
