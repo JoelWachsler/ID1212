@@ -17,6 +17,10 @@ public enum Command {
    */
   LIST,
   /**
+   * Uploads the specified file.
+   */
+  UPLOAD,
+  /**
    * Leave the application.
    */
   QUIT,

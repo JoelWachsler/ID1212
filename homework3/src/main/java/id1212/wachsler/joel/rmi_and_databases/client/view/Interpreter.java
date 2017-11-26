@@ -14,9 +14,14 @@ public class Interpreter implements Runnable {
   private boolean running = false;
   private Console console = new Console();
   private long userId;
-  CmdLineParser parser;
+  private CmdLineParser parser;
 
 
+  /**
+   * Starts a new interpreter on a separate thread.
+   *
+   * @param server The server registry to communicate with.
+   */
   public void start(FileServer server) {
     this.server = server;
     if (running) return;
@@ -25,6 +30,10 @@ public class Interpreter implements Runnable {
     new Thread(this).start();
   }
 
+  /**
+   * Main interpreter loop on a separate thread.
+   * Waits for user input and then evaluates the command accordingly.
+   */
   @Override
   public void run() {
     while (running) {
@@ -37,19 +46,29 @@ public class Interpreter implements Runnable {
 
       try {
         switch (parser.getCmd()) {
-          case LOGIN: login(); break;
-          case REGISTER: register(); break;
-          case LIST:
-            list();
-            break;
+          case LOGIN:     login();    break;
+          case REGISTER:  register(); break;
+          case LIST:      list();     break;
+          case UPLOAD:    upload();   break;
           case QUIT:
             console.disconnect();
             running = false;
             break;
+          default:
+            InvalidCommandException e = new InvalidCommandException("Invalid command!");
+            console.error(e.getMessage(), e);
         }
       } catch (RemoteException e) {
         console.error(e.getMessage(), e);
       }
+    }
+  }
+
+  private void upload() {
+    try {
+      server.upload("./test.xml");
+    } catch (RemoteException e) {
+      e.printStackTrace();
     }
   }
 

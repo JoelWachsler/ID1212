@@ -9,6 +9,12 @@ import id1212.wachsler.joel.rmi_and_databases.server.integration.UserDAO;
 import id1212.wachsler.joel.rmi_and_databases.server.user.User;
 
 import javax.security.auth.login.LoginException;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.Channels;
+import java.nio.channels.FileChannel;
+import java.nio.channels.WritableByteChannel;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.sql.SQLException;
@@ -46,5 +52,21 @@ public class Controller extends UnicastRemoteObject implements FileServer {
     Catalog catalog = new Catalog(new User(userId));
 
     return catalog.list();
+  }
+
+  @Override
+  public void upload(String filename) {
+    try {
+      FileInputStream inf = new FileInputStream(filename);
+      try (FileChannel channel = inf.getChannel()) {
+        MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
+        WritableByteChannel out = Channels.newChannel(System.out);
+        while (buffer.hasRemaining()) {
+          out.write(buffer);
+        }
+      }
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 }
