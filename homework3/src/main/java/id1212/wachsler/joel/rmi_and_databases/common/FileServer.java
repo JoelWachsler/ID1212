@@ -44,6 +44,4 @@ public interface FileServer extends Remote {
    * @throws IllegalAccessException When the userId is invalid.
    */
   List<FileInfoDTO> list(long userId) throws RemoteException, IllegalAccessException;
-
-  void initUpload(String filename) throws RemoteException;
 }

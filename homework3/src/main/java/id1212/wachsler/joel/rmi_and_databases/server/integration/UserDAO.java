@@ -145,21 +145,11 @@ public class UserDAO extends DB {
     }
   }
 
-  public String getUsername(int id) throws Exception {
-    try {
-      getUserFromIdStmt.setLong(1, id);
+  public String getUsername(long id) throws UserDoesNotExistException, SQLException {
+    getUserFromIdStmt.setLong(1, id);
+    ResultSet result = getUserFromIdStmt.executeQuery();
+    if (!result.next()) throw new UserDoesNotExistException();
 
-      ResultSet result = getUserFromIdStmt.executeQuery();
-
-      if (!result.next()) throw new Exception("User does not exist");
-
-      return result.getString("username");
-    } catch (SQLException e) {
-      System.err.println("Failed to get username");
-
-      e.printStackTrace();
-
-      return "";
-    }
+    return result.getString("username");
   }
 }
