@@ -1,10 +1,14 @@
 package id1212.wachsler.joel.rmi_and_databases.client.view;
 
-import id1212.wachsler.joel.rmi_and_databases.common.CredentialDTO;
-import id1212.wachsler.joel.rmi_and_databases.common.FileServer;
-import id1212.wachsler.joel.rmi_and_databases.common.RegisterException;
+import id1212.wachsler.joel.rmi_and_databases.common.*;
+import id1212.wachsler.joel.rmi_and_databases.common.dto.CredentialDTO;
+import id1212.wachsler.joel.rmi_and_databases.common.dto.FileInfoDTO;
+import id1212.wachsler.joel.rmi_and_databases.common.exceptions.RegisterException;
 
 import javax.security.auth.login.LoginException;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.nio.channels.SocketChannel;
 import java.rmi.RemoteException;
 import java.util.Scanner;
 
@@ -13,9 +17,13 @@ public class Interpreter implements Runnable {
   private boolean running = false;
   private Console console = new Console();
   private long userId;
-  CmdLineParser parser;
+  private CmdLineParser parser;
 
-
+  /**
+   * Starts a new interpreter on a separate thread.
+   *
+   * @param server The server registry to communicate with.
+   */
   public void start(FileServer server) {
     this.server = server;
     if (running) return;
@@ -24,6 +32,10 @@ public class Interpreter implements Runnable {
     new Thread(this).start();
   }
 
+  /**
+   * Main interpreter loop on a separate thread.
+   * Waits for user input and then evaluates the command accordingly.
+   */
   @Override
   public void run() {
     while (running) {
@@ -36,15 +48,57 @@ public class Interpreter implements Runnable {
 
       try {
         switch (parser.getCmd()) {
-          case LOGIN: login(); break;
-          case REGISTER: register(); break;
+          case LOGIN:     login();    break;
+          case REGISTER:  register(); break;
+          case LIST:      list();     break;
+          case UPLOAD:    upload();   break;
           case QUIT:
             console.disconnect();
+            running = false;
             break;
+          default:
+            InvalidCommandException e = new InvalidCommandException("Invalid command!");
+            console.error(e.getMessage(), e);
         }
       } catch (RemoteException e) {
         console.error(e.getMessage(), e);
       }
+    }
+  }
+
+  private void upload() {
+    try {
+      String file = parser.getArg(0);
+
+      server.initUpload(file);
+
+      FileTransferHandler handler = new FileTransferHandler(createSocketChannel());
+      handler.sendFile(String.format("client_files/%s", file));
+    } catch (IOException e) {
+      e.printStackTrace();
+    } catch (InvalidCommandException e) {
+      console.error(
+        "Invalid use of the upload command!\n" +
+          "the correct way is:\n" +
+          "upload <filename>", e);
+    }
+  }
+
+  private SocketChannel createSocketChannel() throws IOException {
+    SocketChannel socketChannel = SocketChannel.open();
+    console.print("Trying to connect...");
+    socketChannel.connect(new InetSocketAddress(Constants.SERVER_ADDRESS, Constants.SERVER_SOCKET_PORT));
+    console.print("Connected!");
+
+    return socketChannel;
+  }
+
+  private void list() {
+    try {
+      for (FileInfoDTO file : server.list(userId))
+        console.print(file.toString());
+    } catch (RemoteException | IllegalAccessException e) {
+      console.error(e.getMessage(), e);
     }
   }
 
@@ -56,7 +110,7 @@ public class Interpreter implements Runnable {
     } catch (InvalidCommandException e) {
       console.error(
         "Invalid use of the register command!\n" +
-          "The correct way is:\n" +
+          "the correct way is:\n" +
           "register <username> <password>", e);
     } catch (RegisterException e) {
       console.error(e.getMessage(), e);

@@ -1,7 +1,7 @@
 package id1212.wachsler.joel.rmi_and_databases.server.integration;
 
-import id1212.wachsler.joel.rmi_and_databases.common.CredentialDTO;
-import id1212.wachsler.joel.rmi_and_databases.common.RegisterException;
+import id1212.wachsler.joel.rmi_and_databases.common.dto.CredentialDTO;
+import id1212.wachsler.joel.rmi_and_databases.common.exceptions.RegisterException;
 
 import javax.security.auth.login.LoginException;
 import java.sql.*;
@@ -12,27 +12,38 @@ import static java.sql.Types.NULL;
  * Data access object used to communicate with the database.
  * All calls to the database are encapsulated in this class.
  */
-public class UserDAO {
+public class UserDAO extends DB {
   private static final String USERS_TABLE = "users";
   private PreparedStatement loginStmt;
   private PreparedStatement registerStmt;
   private PreparedStatement userExistsStmt;
+  private PreparedStatement getUserFromIdStmt;
+  private static UserDAO instance;
 
-  public UserDAO(String datasource, CredentialDTO credentialDTO)
-    throws ClassNotFoundException, IllegalAccessException, InstantiationException, SQLException {
+  private UserDAO() {
+    try {
+      prepareStatements(super.getConnection());
+    } catch (SQLException e) {
+      System.err.println("Failed to prepare UserDAO statements..");
+      e.printStackTrace();
+    }
+  }
 
-    final String connectionString = String.format("jdbc:mysql://localhost:3306/%s?user=%s&password=%s",
-      datasource, credentialDTO.getUsername(), credentialDTO.getPassword());
+  public static UserDAO getInstance() {
+    if (instance == null) instance = new UserDAO();
 
-    Connection connection = DriverManager.getConnection(connectionString);
-
-    prepareStatements(connection);
+    return instance;
   }
 
   private void prepareStatements(Connection connection) throws SQLException {
     registerStmt = connection.prepareStatement(
       "INSERT INTO " + USERS_TABLE +
         " VALUES (?, ?, ?)");
+
+    getUserFromIdStmt = connection.prepareStatement(
+      "SELECT * FROM " + USERS_TABLE +
+        " WHERE " +
+        "`id`=?");
 
     userExistsStmt = connection.prepareStatement(
       "SELECT * FROM " + USERS_TABLE +
@@ -78,7 +89,6 @@ public class UserDAO {
    */
   public long register(CredentialDTO credentialDTO) throws RegisterException {
     try {
-
       if (userExists(credentialDTO.getUsername()))
         throw new RegisterException(String.format("A user with the username: \"%s\" already exists...",
           credentialDTO.getUsername()));
@@ -110,5 +120,46 @@ public class UserDAO {
     ResultSet result = userExistsStmt.executeQuery();
 
     return result.next();
+  }
+
+  /**
+   * Checks if a user with the provided id exists.
+   *
+   * @param userId The user id to check if a user has it.
+   * @return <code>true</code> if the user exists. <code>false</code> if the user does not exist.
+   */
+  public boolean userExists(long userId) {
+    if (userId == 0) return false;
+
+    try {
+      getUserFromIdStmt.setLong(1, userId);
+
+      ResultSet result = getUserFromIdStmt.executeQuery();
+
+      return result.next();
+    } catch (SQLException e) {
+      System.err.println("Failed to execute the userExists query!");
+      e.printStackTrace();
+
+      return false;
+    }
+  }
+
+  public String getUsername(int id) throws Exception {
+    try {
+      getUserFromIdStmt.setLong(1, id);
+
+      ResultSet result = getUserFromIdStmt.executeQuery();
+
+      if (!result.next()) throw new Exception("User does not exist");
+
+      return result.getString("username");
+    } catch (SQLException e) {
+      System.err.println("Failed to get username");
+
+      e.printStackTrace();
+
+      return "";
+    }
   }
 }
