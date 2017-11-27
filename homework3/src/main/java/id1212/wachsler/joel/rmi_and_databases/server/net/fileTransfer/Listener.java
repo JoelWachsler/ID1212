@@ -1,4 +1,4 @@
-package id1212.wachsler.joel.rmi_and_databases.server.net.FileTransfer;
+package id1212.wachsler.joel.rmi_and_databases.server.net.fileTransfer;
 
 import id1212.wachsler.joel.rmi_and_databases.common.Constants;
 import id1212.wachsler.joel.rmi_and_databases.server.controller.Controller;

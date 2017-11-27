@@ -18,12 +18,14 @@ public interface FileServer extends Remote {
   /**
    * Users should be able to login.
    *
+   *
+   * @param console
    * @param credentialDTO The credentials used to login.
    * @return The id of the logged in user -> used for authentication.
    * @throws RemoteException When something goes wrong with the communication.
    * @throws LoginException When something goes wrong with the authentication.
    */
-  long login(CredentialDTO credentialDTO) throws RemoteException, LoginException;
+  long login(Listener console, CredentialDTO credentialDTO) throws RemoteException, LoginException;
 
   /**
    * Users should be able to register.
@@ -33,7 +35,7 @@ public interface FileServer extends Remote {
    * @throws RemoteException When something goes wrong with the communication.
    * @throws RegisterException When something goes wrong with the registration.
    */
-  long register(CredentialDTO credentialDTO) throws RemoteException, RegisterException;
+  long register(Listener console, CredentialDTO credentialDTO) throws RemoteException, RegisterException;
 
   /**
    * Users should be able to view their files.

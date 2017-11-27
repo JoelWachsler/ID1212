@@ -8,12 +8,13 @@ import id1212.wachsler.joel.rmi_and_databases.common.exceptions.RegisterExceptio
 
 import java.io.IOException;
 import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.Scanner;
 
 public class Interpreter implements Runnable {
   private FileServer server;
   private boolean running = false;
-  private Console console = new Console();
+  private Console console;
   private CmdLineParser parser;
   private Controller controller = new Controller();
 
@@ -22,11 +23,12 @@ public class Interpreter implements Runnable {
    *
    * @param server The server registry to communicate with.
    */
-  public void start(FileServer server) {
+  public void start(FileServer server) throws RemoteException {
     this.server = server;
     if (running) return;
 
     running = true;
+    console = new Console();
     new Thread(this).start();
   }
 
@@ -42,6 +44,8 @@ public class Interpreter implements Runnable {
       } catch (InvalidCommandException e) {
         console.error(e.getMessage(), e);
         continue;
+      } catch (RemoteException e) {
+        console.error(e.getMessage(), e);
       }
 
       try {
@@ -99,7 +103,7 @@ public class Interpreter implements Runnable {
   private void register() throws RemoteException {
     try {
       CredentialDTO credentialDTO = createCredentials(parser);
-      long userId = server.register(credentialDTO);
+      long userId = server.register(console, credentialDTO);
       controller.authenticated(userId);
       console.print("You're now registered and your id is: " + userId);
     } catch (InvalidCommandException e) {
@@ -114,7 +118,7 @@ public class Interpreter implements Runnable {
 
   private void login() throws RemoteException {
     try {
-      long userId = server.login(createCredentials(parser));
+      long userId = server.login(console, createCredentials(parser));
       controller.authenticated(userId);
       console.print("You're now logged in! Your id is: " + userId);
     } catch (InvalidCommandException e) {
@@ -123,6 +127,7 @@ public class Interpreter implements Runnable {
           "The correct way is:\n" +
           "login <username> <password>", e);
     } catch (Exception e) {
+      e.printStackTrace();
       console.error(e.getMessage(), e);
     }
   }
@@ -133,13 +138,16 @@ public class Interpreter implements Runnable {
     return new CredentialDTO(username, password);
   }
 
-  private class Console implements Listener {
+  public class Console extends UnicastRemoteObject implements Listener {
     private static final String PROMPT = "> ";
     private final ThreadSafeStdOut outMsg = new ThreadSafeStdOut();
     private final Scanner console = new Scanner(System.in);
 
+    Console() throws RemoteException {
+    }
+
     @Override
-    public void print(String msg) {
+    public void print(String msg) throws RemoteException {
       outMsg.println(msg);
     }
 
@@ -150,11 +158,11 @@ public class Interpreter implements Runnable {
     }
 
     @Override
-    public void disconnect() {
+    public void disconnect() throws RemoteException {
       print("You are now disconnected!");
     }
 
-    String readNextLine() {
+    String readNextLine() throws RemoteException {
       outMsg.print(PROMPT);
 
       return console.nextLine();

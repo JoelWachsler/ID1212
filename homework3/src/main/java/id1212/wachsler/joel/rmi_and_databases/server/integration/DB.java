@@ -9,7 +9,7 @@ import java.sql.SQLException;
 /**
  * Handles the connection to the database.
  */
-abstract class DB {
+public abstract class DB {
   private static Connection connection;
 
   public static void init(String datasource, CredentialDTO dbLogin) throws SQLException {

@@ -1,7 +1,7 @@
 package id1212.wachsler.joel.rmi_and_databases.server.integration;
 
 import id1212.wachsler.joel.rmi_and_databases.common.dto.FileInfoDTO;
-import id1212.wachsler.joel.rmi_and_databases.server.user.User;
+import id1212.wachsler.joel.rmi_and_databases.server.userHandler.User;
 
 import java.io.FileNotFoundException;
 import java.sql.Connection;

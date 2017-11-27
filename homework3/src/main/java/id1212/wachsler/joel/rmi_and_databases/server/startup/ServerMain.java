@@ -3,7 +3,8 @@ package id1212.wachsler.joel.rmi_and_databases.server.startup;
 import id1212.wachsler.joel.rmi_and_databases.common.dto.CredentialDTO;
 import id1212.wachsler.joel.rmi_and_databases.common.FileServer;
 import id1212.wachsler.joel.rmi_and_databases.server.controller.Controller;
-import id1212.wachsler.joel.rmi_and_databases.server.net.FileTransfer.Listener;
+import id1212.wachsler.joel.rmi_and_databases.server.integration.DB;
+import id1212.wachsler.joel.rmi_and_databases.server.net.fileTransfer.Listener;
 
 import java.net.BindException;
 import java.net.MalformedURLException;
@@ -22,9 +23,10 @@ public class ServerMain {
 
   public static void main(String[] args) throws BindException {
     try {
-      Controller controller = new Controller(datasource, dbLogin);
-
       ServerMain server = new ServerMain();
+      server.initDB(datasource, dbLogin);
+
+      Controller controller = new Controller();
 
       server.startRMIServant(controller);
       System.out.println("RMI server started.");
@@ -34,6 +36,11 @@ public class ServerMain {
       System.err.println("Failed to start server");
       e.printStackTrace();
     }
+  }
+
+  private void initDB(String datasource, CredentialDTO dbLogin) throws SQLException {
+    DB.init(datasource, dbLogin);
+    System.out.println("Database started!");
   }
 
   private void startFileServerListener(Controller controller) {

@@ -1,6 +1,7 @@
-package id1212.wachsler.joel.rmi_and_databases.server.user;
+package id1212.wachsler.joel.rmi_and_databases.server.userHandler;
 
 import com.sun.istack.internal.NotNull;
+import id1212.wachsler.joel.rmi_and_databases.common.Listener;
 import id1212.wachsler.joel.rmi_and_databases.common.dto.CredentialDTO;
 import id1212.wachsler.joel.rmi_and_databases.common.exceptions.RegisterException;
 import id1212.wachsler.joel.rmi_and_databases.server.integration.UserDAO;
@@ -10,6 +11,8 @@ import javax.security.auth.login.LoginException;
 import java.sql.SQLException;
 
 public class User {
+  private final CredentialDTO credentials;
+  private final Listener console;
   private UserDAO userDAO;
   private long id;
   private String username;
@@ -18,29 +21,23 @@ public class User {
     userDAO = UserDAO.getInstance();
   }
 
-  public User() {
-    init();
-  }
-
-  public User(long userId) throws IllegalAccessException {
+  public User(Listener console, CredentialDTO credentials) {
     init();
 
-    if (!userDAO.userExists(userId)) throw new IllegalAccessException("You are not logged in!");
-
-    id = userId;
+    this.credentials = credentials;
+    this.console = console;
   }
 
   /**
-   * Logs in a user.
+   * Authenticates a user.
    *
-   * @param credentialDTO The credentials used to authenticate the user.
    * @return The user id of the user.
    * @throws LoginException If the user is already logged in or something went wrong when logging in.
    */
-  public long login(@NotNull CredentialDTO credentialDTO) throws LoginException {
+  long login() throws LoginException {
     if (id != 0) throw new LoginException("You're already logged in!");
 
-    id = userDAO.login(credentialDTO);
+    id = userDAO.login(credentials);
 
     return id;
   }
@@ -48,14 +45,13 @@ public class User {
   /**
    * Registers a user.
    *
-   * @param credentialDTO The credentials used for the registration.
    * @return The user id of the registered user.
    * @throws RegisterException If the user is already logged in or something went wrong with the registration.
    */
-  public long register(@NotNull CredentialDTO credentialDTO) throws RegisterException {
+  long register() throws RegisterException {
     if (id != 0) throw new RegisterException("You cannot register if you're logged in!");
 
-    id = userDAO.register(credentialDTO);
+    id = userDAO.register(credentials);
 
     return id;
   }
