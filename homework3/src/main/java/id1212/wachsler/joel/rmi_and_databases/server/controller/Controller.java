@@ -3,13 +3,13 @@ package id1212.wachsler.joel.rmi_and_databases.server.controller;
 import id1212.wachsler.joel.rmi_and_databases.common.Listener;
 import id1212.wachsler.joel.rmi_and_databases.common.*;
 import id1212.wachsler.joel.rmi_and_databases.common.dto.CredentialDTO;
+import id1212.wachsler.joel.rmi_and_databases.common.exceptions.RegisterException;
 import id1212.wachsler.joel.rmi_and_databases.server.model.User;
 
 import javax.security.auth.login.LoginException;
 import java.nio.channels.SocketChannel;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-import java.sql.SQLException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -40,7 +40,7 @@ public class Controller extends UnicastRemoteObject implements FileServer {
    * @see FileServer#register(Listener, CredentialDTO)
    */
   @Override
-  public void register(Listener console, CredentialDTO credentials) throws RemoteException {
+  public void register(Listener console, CredentialDTO credentials) throws RemoteException, RegisterException {
     User user = new User(credentials);
     user.addListener(console);
     user.register();

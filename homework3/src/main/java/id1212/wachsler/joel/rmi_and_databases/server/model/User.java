@@ -2,6 +2,7 @@ package id1212.wachsler.joel.rmi_and_databases.server.model;
 
 import id1212.wachsler.joel.rmi_and_databases.common.Listener;
 import id1212.wachsler.joel.rmi_and_databases.common.dto.CredentialDTO;
+import id1212.wachsler.joel.rmi_and_databases.common.exceptions.RegisterException;
 import id1212.wachsler.joel.rmi_and_databases.server.integration.UserDAO;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
@@ -24,13 +25,29 @@ public class User {
     this.credentials = credentials;
   }
 
+  private boolean userWithUsernameExists() {
+    try {
+      Session session = UserDAO.getSession();
+      Query query = session.createQuery("Select ua from User ua where ua.username=:username");
+      query.setParameter("username", credentials.getUsername());
+
+      query.getSingleResult();
+
+      return true;
+    } catch (NoResultException e) {
+      return false;
+    }
+  }
+
   /**
    * Registers a user using the <code>CredentialDTO</code> from the constructor.
    *
    * @throws RemoteException When something with the communication goes wrong.
    */
-  public void register() throws RemoteException {
+  public void register() throws RemoteException, RegisterException {
     userDao = new UserDAO();
+    if (userWithUsernameExists())
+      throw new RegisterException("A user with that username already exists!");
 
     try {
       userDao.setUsername(credentials.getUsername());

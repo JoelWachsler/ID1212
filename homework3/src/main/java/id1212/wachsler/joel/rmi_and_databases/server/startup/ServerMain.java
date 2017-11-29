@@ -21,7 +21,7 @@ public class ServerMain {
   public static void main(String[] args) throws BindException {
     // Set logging to a more reasonable level
     Logger log = Logger.getLogger("org.hibernate");
-    log.setLevel(Level.WARNING);
+    log.setLevel(Level.SEVERE);
 
     try {
       HibernateSession.initSessionFactory();
