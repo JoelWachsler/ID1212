@@ -4,7 +4,7 @@
 <hibernate-configuration>
   <session-factory>
     <property name="hibernate.dialect">org.hibernate.dialect.MySQL57Dialect</property>
-    <!-- <property name="hibernate.connection.driver_class">com.mysql.jdbc.Driver</property> -->
+    <property name="hibernate.connection.driver_class">com.mysql.cj.jdbc.Driver</property>
     <!-- Assume file_server is the database name -->
     <property name="hibernate.connection.url">jdbc:mysql://localhost:3306/file_server</property>
 
@@ -13,9 +13,9 @@
     <property name="hibernate.connection.password"></property>
 
     <!-- DEBUGGING -->
-    <!-- <property name="show_sql">true</property> -->
+    <property name="show_sql">true</property>
     
-    <!-- Update schema if there is one -->
+    <!-- Delete and create schema -->
     <property name="hbm2ddl.auto">create</property>
 
     <!-- List of XML mapping files -->

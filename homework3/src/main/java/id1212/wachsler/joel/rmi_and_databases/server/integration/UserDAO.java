@@ -1,27 +1,32 @@
 package id1212.wachsler.joel.rmi_and_databases.server.integration;
 
 import javax.persistence.*;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * Data access object used to communicate with the database.
- * All calls to the database are encapsulated in this class.
  */
-@Entity(name = "users")
-public class UserDAO {
+@Entity(name = "User")
+public class UserDAO extends HibernateSession {
 
+  @Id @GeneratedValue(strategy = GenerationType.AUTO)
   private long id;
+  @Column(unique = true, nullable = false)
   private String username;
+  @Column(nullable = false)
   private String password;
-  private Set<FileDAO> files;
+  @OneToMany(mappedBy = "owner")
+  private Collection<FileDAO> files = new ArrayList<>();
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
   public long getId() {
     return id;
   }
 
-  @Column(unique = true, nullable = false)
+  public void setId(long id) {
+    this.id = id;
+  }
+
   public String getUsername() {
     return username;
   }
@@ -30,7 +35,6 @@ public class UserDAO {
     this.username = username;
   }
 
-  @Column(nullable = false)
   public String getPassword() {
     return password;
   }
@@ -39,12 +43,11 @@ public class UserDAO {
     this.password = password;
   }
 
-  @OneToMany
-  public Set<FileDAO> getFiles() {
+  public Collection<FileDAO> getFiles() {
     return files;
   }
 
-  public void setFiles(Set<FileDAO> files) {
+  public void setFiles(Collection<FileDAO> files) {
     this.files = files;
   }
 }

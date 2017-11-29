@@ -1,13 +1,11 @@
 package id1212.wachsler.joel.rmi_and_databases.common;
 
 import id1212.wachsler.joel.rmi_and_databases.common.dto.CredentialDTO;
-import id1212.wachsler.joel.rmi_and_databases.common.dto.FileInfoDTO;
 import id1212.wachsler.joel.rmi_and_databases.common.exceptions.RegisterException;
 
 import javax.security.auth.login.LoginException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
-import java.util.List;
 
 /**
  * Registry for RMI.
@@ -18,8 +16,7 @@ public interface FileServer extends Remote {
   /**
    * Users should be able to login.
    *
-   *
-   * @param console
+   * @param console The observer that should be notified of what happens.
    * @param credentialDTO The credentials used to login.
    * @return The id of the logged in user -> used for authentication.
    * @throws RemoteException When something goes wrong with the communication.
@@ -30,20 +27,30 @@ public interface FileServer extends Remote {
   /**
    * Users should be able to register.
    *
+   * @param console The observer that should be notified of what happens.
    * @param credentialDTO Credentials used to register.
-   * @return The id of the newly created account.
    * @throws RemoteException When something goes wrong with the communication.
    * @throws RegisterException When something goes wrong with the registration.
    */
-  long register(Listener console, CredentialDTO credentialDTO) throws RemoteException, RegisterException;
+  void register(Listener console, CredentialDTO credentialDTO) throws RemoteException, RegisterException;
 
   /**
    * Users should be able to view their files.
    *
    * @param userId The id of the user who wants to see their files or public files.
-   * @return A list of files on the server.
    * @throws RemoteException When something goes wrong with the communication.
    * @throws IllegalAccessException When the userId is invalid.
    */
-  List<FileInfoDTO> list(long userId) throws RemoteException, IllegalAccessException;
+  void list(long userId) throws RemoteException, IllegalAccessException;
+
+  /**
+   * Uploads the specified file.
+   *
+   * @param userId Id of the user who wants to upload the file.
+   * @param serverFilename The name of the file to upload.
+   * @param publicAccess If the file should be public
+   * @param readable If the file is public should it be readable by other users.
+   * @param writable If the file is public should it be writable by other users.
+   */
+  void upload(long userId, String serverFilename, boolean publicAccess, boolean readable, boolean writable) throws RemoteException, IllegalAccessException;
 }

@@ -1,4 +1,4 @@
-package id1212.wachsler.joel.rmi_and_databases.server.net.fileTransfer;
+package id1212.wachsler.joel.rmi_and_databases.server.net;
 
 import id1212.wachsler.joel.rmi_and_databases.common.Constants;
 import id1212.wachsler.joel.rmi_and_databases.server.controller.Controller;
@@ -34,7 +34,13 @@ public class Listener implements Runnable {
         SocketChannel client = serverSocket.accept();
         System.out.println("Connection established: " + client.getRemoteAddress());
 
-        CompletableFuture.runAsync(() -> new ClientHandler(controller, client));
+        CompletableFuture.runAsync(() -> {
+          try {
+            new ClientHandler(controller, client);
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
+        });
       }
     } catch (BindException e) {
       System.err.println(String.format("Port %d is already in use!", Constants.SERVER_SOCKET_PORT));

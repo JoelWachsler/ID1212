@@ -4,7 +4,7 @@
 <hibernate-configuration>
   <session-factory>
     <property name="hibernate.dialect">org.hibernate.dialect.MySQL57Dialect</property>
-    <!-- <property name="hibernate.connection.driver_class">com.mysql.jdbc.Driver</property> -->
+    <property name="hibernate.connection.driver_class">com.mysql.cj.jdbc.Driver</property>
     <!-- Assume file_server is the database name -->
     <property name="hibernate.connection.url">jdbc:mysql://localhost:3306/file_server</property>
 
@@ -13,12 +13,13 @@
     <property name="hibernate.connection.password"></property>
 
     <!-- DEBUGGING -->
-    <!-- <property name="show_sql">true</property> -->
+    <property name="show_sql">true</property>
     
-    <!-- Drop and re-create database schema on startup -> DO NOT USER IS PROD :) -->
+    <!-- Delete and create schema -->
     <property name="hbm2ddl.auto">create</property>
 
     <!-- List of XML mapping files -->
-    <mapping class="id1212.wachsler.joel.rmi_and_databases.testing.User"/>
+    <mapping class="id1212.wachsler.joel.rmi_and_databases.server.integration.UserDAO"/>
+    <mapping class="id1212.wachsler.joel.rmi_and_databases.server.integration.FileDAO"/>
   </session-factory>
 </hibernate-configuration>

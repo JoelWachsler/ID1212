@@ -4,25 +4,27 @@ import javax.persistence.*;
 
 /**
  * Data access object used to communicate with the database.
- * All calls to the database are encapsulated in this class.
  */
-@Entity(name = "files")
-public class FileDAO {
+@Entity(name = "File")
+public class FileDAO extends HibernateSession {
   private long id;
   private String name;
   private int size;
   private UserDAO owner;
   private boolean publicAccess = false;
-  private boolean write = false;
-  private boolean read = false;
+  private boolean writable = false;
+  private boolean readable = false;
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Id @GeneratedValue(strategy = GenerationType.AUTO)
   public long getId() {
     return id;
   }
 
-  @Column(nullable = false)
+  public void setId(long id) {
+    this.id = id;
+  }
+
+  @Column(unique = true, nullable = false)
   public String getName() {
     return name;
   }
@@ -41,18 +43,6 @@ public class FileDAO {
     this.size = size;
   }
 
-  @Column(nullable = false)
-  @ManyToOne
-  public UserDAO getOwner() {
-    return owner;
-  }
-
-  @Column(nullable = false)
-  public void setOwner(UserDAO owner) {
-    this.owner = owner;
-  }
-
-  @Column(nullable = false)
   public boolean isPublicAccess() {
     return publicAccess;
   }
@@ -61,21 +51,28 @@ public class FileDAO {
     this.publicAccess = publicAccess;
   }
 
-  @Column(nullable = false)
-  public boolean isWrite() {
-    return write;
+  public boolean isWritable() {
+    return writable;
   }
 
-  public void setWrite(boolean write) {
-    this.write = write;
+  public void setWritable(boolean write) {
+    this.writable = write;
   }
 
-  @Column(nullable = false)
-  public boolean isRead() {
-    return read;
+  public boolean isReadable() {
+    return readable;
   }
 
-  public void setRead(boolean read) {
-    this.read = read;
+  public void setReadable(boolean read) {
+    this.readable = read;
+  }
+
+  @ManyToOne(optional = false)
+  public UserDAO getOwner() {
+    return owner;
+  }
+
+  public void setOwner(UserDAO owner) {
+    this.owner = owner;
   }
 }

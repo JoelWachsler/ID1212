@@ -1,10 +1,9 @@
 package id1212.wachsler.joel.rmi_and_databases.server.startup;
 
-import id1212.wachsler.joel.rmi_and_databases.common.dto.CredentialDTO;
 import id1212.wachsler.joel.rmi_and_databases.common.FileServer;
 import id1212.wachsler.joel.rmi_and_databases.server.controller.Controller;
-import id1212.wachsler.joel.rmi_and_databases.server.integration.DB;
-import id1212.wachsler.joel.rmi_and_databases.server.net.fileTransfer.Listener;
+import id1212.wachsler.joel.rmi_and_databases.server.integration.HibernateSession;
+import id1212.wachsler.joel.rmi_and_databases.server.net.Listener;
 
 import java.net.BindException;
 import java.net.MalformedURLException;
@@ -12,20 +11,23 @@ import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Stars the file handling server.
  */
 public class ServerMain {
-  private static final String datasource = "file_server";
-  private static final CredentialDTO dbLogin = new CredentialDTO("root", "");
-
   public static void main(String[] args) throws BindException {
-    try {
-      ServerMain server = new ServerMain();
-      server.initDB(datasource, dbLogin);
+    // Set logging to a more reasonable level
+    Logger log = Logger.getLogger("org.hibernate");
+    log.setLevel(Level.WARNING);
 
+    try {
+      HibernateSession.initSessionFactory();
+      System.out.println("Hibernate started.");
+
+      ServerMain server = new ServerMain();
       Controller controller = new Controller();
 
       server.startRMIServant(controller);
@@ -38,16 +40,11 @@ public class ServerMain {
     }
   }
 
-  private void initDB(String dataSource, CredentialDTO dbLogin) throws SQLException {
-    DB.init(dataSource, dbLogin);
-    System.out.println("Database started!");
-  }
-
   private void startFileServerListener(Controller controller) {
     new Listener(controller);
   }
 
-  private void startRMIServant(Controller controller) throws RemoteException, MalformedURLException, ClassNotFoundException, SQLException, InstantiationException, IllegalAccessException {
+  private void startRMIServant(Controller controller) throws RemoteException, MalformedURLException {
     try {
       LocateRegistry.getRegistry().list();
     } catch (RemoteException e) {
