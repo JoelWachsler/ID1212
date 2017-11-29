@@ -135,7 +135,7 @@ public class User {
   public void upload(String filename, boolean publicAccess, boolean readable, boolean writable) throws IllegalAccessException {
     File file = new File();
 
-    file.setUserId(userDao.getId());
+    file.setUser(userDao);
     file.setFilename(filename);
     file.setPublicAccess(publicAccess);
     file.setReadable(readable);

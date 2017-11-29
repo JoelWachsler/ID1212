@@ -1,5 +1,6 @@
 package id1212.wachsler.joel.rmi_and_databases.client.view;
 
+import com.sun.javafx.binding.StringFormatter;
 import id1212.wachsler.joel.rmi_and_databases.common.*;
 import id1212.wachsler.joel.rmi_and_databases.common.dto.CredentialDTO;
 import id1212.wachsler.joel.rmi_and_databases.common.dto.SocketIdentifierDTO;
@@ -7,12 +8,18 @@ import id1212.wachsler.joel.rmi_and_databases.common.exceptions.RegisterExceptio
 import id1212.wachsler.joel.rmi_and_databases.common.net.FileTransferHandler;
 
 import javax.security.auth.login.LoginException;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.InetSocketAddress;
 import java.nio.channels.SocketChannel;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Paths;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.ArrayDeque;
+import java.util.Queue;
 import java.util.Scanner;
 import java.util.logging.FileHandler;
 
@@ -54,6 +61,7 @@ public class Interpreter implements Runnable {
           case REGISTER:  register(); break;
           case LIST:      list();     break;
           case UPLOAD:    upload();   break;
+          case TRACE:     console.printTrace(); break;
           case QUIT:
             console.disconnect();
             running = false;
@@ -72,6 +80,12 @@ public class Interpreter implements Runnable {
 
     try {
       String localFilename = parser.getArg(0);
+
+      String filePath = String.format("client_files/%s", localFilename);
+
+      if (!Files.exists(Paths.get(filePath)))
+        throw new FileNotFoundException(String.format("The file \"%s\" does not exist!", localFilename));
+
       String serverFilename = parser.getArg(1);
       boolean publicAccess = Boolean.valueOf(parser.getArg(2));
       boolean readable = Boolean.valueOf(parser.getArg(3));
@@ -79,7 +93,7 @@ public class Interpreter implements Runnable {
 
       server.upload(userId, serverFilename, publicAccess, readable, writable);
 
-      FileTransferHandler.sendFile(socket, localFilename);
+      FileTransferHandler.sendFile(socket, filePath);
     } catch (InvalidCommandException e) {
       throw new InvalidCommandException(
         "Invalid use of the upload command!\n" +
@@ -140,6 +154,7 @@ public class Interpreter implements Runnable {
     private static final String PROMPT = "> ";
     private final ThreadSafeStdOut outMsg = new ThreadSafeStdOut();
     private final Scanner console = new Scanner(System.in);
+    private final Queue<Exception> exceptionList = new ArrayDeque<>();
 
     Console() throws RemoteException {
     }
@@ -152,6 +167,8 @@ public class Interpreter implements Runnable {
 
     @Override
     public void error(String error, Exception e) {
+      exceptionList.add(e);
+
       outMsg.println("ERROR:");
       outMsg.println(error);
     }
@@ -165,6 +182,10 @@ public class Interpreter implements Runnable {
       outMsg.print(PROMPT);
 
       return console.nextLine();
+    }
+
+    void printTrace() throws RemoteException {
+      exceptionList.poll().printStackTrace();
     }
   }
 }

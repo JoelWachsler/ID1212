@@ -2,23 +2,25 @@ package id1212.wachsler.joel.rmi_and_databases.server.model;
 
 import id1212.wachsler.joel.rmi_and_databases.common.net.FileTransferHandler;
 import id1212.wachsler.joel.rmi_and_databases.server.integration.FileDAO;
+import id1212.wachsler.joel.rmi_and_databases.server.integration.UserDAO;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
 
+import javax.persistence.NoResultException;
 import java.io.IOException;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.CompletableFuture;
 
 class File {
 
-  private long userId;
   private String filename;
   private boolean publicAccess;
   private boolean readable;
   private boolean writable;
+  private UserDAO user;
 
-  void setUserId(long userId) {
-    this.userId = userId;
+  void setUser(UserDAO user) {
+    this.user = user;
   }
 
   void setFilename(String filename) {
@@ -41,19 +43,42 @@ class File {
     try {
       FileDAO fileDAO = getFileByName(filename);
 
-      if (fileDAO.getOwner().getId() != userId && !fileDAO.isWritable())
+      if (fileDAO.getOwner().getId() != user.getId() && !fileDAO.isWritable())
         throw new IllegalAccessException("The file is not owned by you and is not writable!");
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
 
-//    uploadFile(socketChannel, filename);
+      if (fileDAO.getOwner().getId() == user.getId())
+        insertNewFileRecordAndUpload(socketChannel);
+    } catch (NoResultException e) {
+      // The record doesn't exist -> we're free to upload
+      insertNewFileRecordAndUpload(socketChannel);
+    }
+  }
+
+  private void insertNewFileRecordAndUpload(SocketChannel socketChannel) {
+    Session session = FileDAO.getSession();
+    try {
+      session.beginTransaction();
+      FileDAO fileDAO = new FileDAO();
+      fileDAO.setOwner(user);
+      fileDAO.setName(filename);
+      fileDAO.setPublicAccess(publicAccess);
+      fileDAO.setReadable(readable);
+      fileDAO.setWritable(writable);
+
+      session.save(fileDAO);
+      session.getTransaction().commit();
+      uploadFile(socketChannel, filename);
+    } catch (Exception e) {
+      session.getTransaction().rollback();
+    } finally {
+      session.close();
+    }
   }
 
   private void uploadFile(SocketChannel socketChannel, String filename) {
     CompletableFuture.runAsync(() -> {
       try {
-        FileTransferHandler.receiveFile(socketChannel, filename);
+        FileTransferHandler.receiveFile(socketChannel, String.format("server_files/%s", filename));
       } catch (IOException e) {
         e.printStackTrace();
       }

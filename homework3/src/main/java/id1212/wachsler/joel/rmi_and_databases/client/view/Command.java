@@ -24,4 +24,8 @@ public enum Command {
    * Leave the application.
    */
   QUIT,
+  /**
+   * Prints the last stacktrace
+   */
+  TRACE,
 }
