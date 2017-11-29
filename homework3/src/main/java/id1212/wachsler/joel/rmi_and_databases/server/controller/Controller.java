@@ -1,56 +1,70 @@
 package id1212.wachsler.joel.rmi_and_databases.server.controller;
 
+import id1212.wachsler.joel.rmi_and_databases.common.Listener;
 import id1212.wachsler.joel.rmi_and_databases.common.*;
 import id1212.wachsler.joel.rmi_and_databases.common.dto.CredentialDTO;
-import id1212.wachsler.joel.rmi_and_databases.common.dto.FileInfoDTO;
-import id1212.wachsler.joel.rmi_and_databases.common.exceptions.RegisterException;
-import id1212.wachsler.joel.rmi_and_databases.server.catalog.Catalog;
-import id1212.wachsler.joel.rmi_and_databases.server.integration.UserDAO;
-import id1212.wachsler.joel.rmi_and_databases.server.user.User;
+import id1212.wachsler.joel.rmi_and_databases.server.model.User;
 
 import javax.security.auth.login.LoginException;
+import java.nio.channels.SocketChannel;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.sql.SQLException;
-import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Controller for the file server which is directly called by other nodes.
  */
 public class Controller extends UnicastRemoteObject implements FileServer {
-  private User user;
+  private final Map<Long, User> users = new ConcurrentHashMap<>();
 
-  public Controller(String datasource, CredentialDTO dbLogin) throws RemoteException, ClassNotFoundException, SQLException, InstantiationException, IllegalAccessException {
-    System.out.println("Trying to create a new controller!");
-
-    System.out.println("Initializing database!");
-    UserDAO.init(datasource, dbLogin);
-    user = new User();
+  public Controller() throws RemoteException {
   }
 
+  /**
+   * @see FileServer#login(Listener, CredentialDTO)
+   */
   @Override
-  public long login(CredentialDTO credentialDTO) throws RemoteException, LoginException {
-    System.out.println("Trying to login!");
+  public long login(Listener console, CredentialDTO credentialDTO) throws RemoteException, LoginException {
+    User user = new User(credentialDTO);
+    user.addListener(console);
 
-    return user.login(credentialDTO);
+    long id = user.login();
+    users.put(id, user);
+
+    return id;
   }
 
+  /**
+   * @see FileServer#register(Listener, CredentialDTO)
+   */
   @Override
-  public long register(CredentialDTO credentialDTO) throws RemoteException, RegisterException {
-    System.out.println("Trying to register a user");
-    
-    return user.register(credentialDTO);
+  public void register(Listener console, CredentialDTO credentials) throws RemoteException {
+    User user = new User(credentials);
+    user.addListener(console);
+    user.register();
   }
 
+  /**
+   * @see FileServer#list(long)
+   */
   @Override
-  public List<FileInfoDTO> list(long userId) throws RemoteException, IllegalAccessException {
-    Catalog catalog = new Catalog(new User(userId));
-
-    return catalog.list();
+  public void list(long userId) throws RemoteException, IllegalAccessException {
   }
 
-  public void fileWriteAllowed(long userId, String filename) throws IllegalAccessException {
-    Catalog catalog = new Catalog(new User(userId));
-    catalog.allowedToUpload(filename);
+  /**
+   * @see FileServer#upload(long, String, boolean, boolean, boolean)
+   */
+  @Override
+  public void upload(long userId, String filename, boolean publicAccess, boolean readable, boolean writable) throws RemoteException, IllegalAccessException {
+    users.get(userId).upload(filename, publicAccess, readable, writable);
+  }
+
+  /**
+   * @see User#attachSocketHandler(SocketChannel)
+   */
+  public void attachSocketToUser(long userId, SocketChannel socketChannel) throws RemoteException {
+    users.get(userId).attachSocketHandler(socketChannel);
   }
 }
