@@ -38,8 +38,8 @@ public class ServerMain {
     }
   }
 
-  private void initDB(String datasource, CredentialDTO dbLogin) throws SQLException {
-    DB.init(datasource, dbLogin);
+  private void initDB(String dataSource, CredentialDTO dbLogin) throws SQLException {
+    DB.init(dataSource, dbLogin);
     System.out.println("Database started!");
   }
 

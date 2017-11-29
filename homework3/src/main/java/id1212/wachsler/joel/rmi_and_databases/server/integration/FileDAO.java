@@ -1,125 +1,81 @@
 package id1212.wachsler.joel.rmi_and_databases.server.integration;
 
-import id1212.wachsler.joel.rmi_and_databases.common.dto.FileInfoDTO;
-import id1212.wachsler.joel.rmi_and_databases.server.userHandler.User;
+import javax.persistence.*;
 
-import java.io.FileNotFoundException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
+/**
+ * Data access object used to communicate with the database.
+ * All calls to the database are encapsulated in this class.
+ */
+@Entity(name = "files")
+public class FileDAO {
+  private long id;
+  private String name;
+  private int size;
+  private UserDAO owner;
+  private boolean publicAccess = false;
+  private boolean write = false;
+  private boolean read = false;
 
-public class FileDAO extends DB {
-  private static final String FILE_TABLE = "files";
-  private static FileDAO instance;
-  private PreparedStatement getFilesStmt;
-  private PreparedStatement getFileStmt;
-
-  private FileDAO() {
-    try {
-      prepareStatements(super.getConnection());
-    } catch (SQLException e) {
-      System.err.println("Failed to prepare FileDAO statements..");
-      e.printStackTrace();
-    }
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  public long getId() {
+    return id;
   }
 
-  private void prepareStatements(Connection connection) throws SQLException {
-    getFilesStmt = connection.prepareStatement(
-      "SELECT * FROM " + FILE_TABLE +
-        " WHERE " +
-        "`owner`=?" +
-        " OR " +
-        "`public`=TRUE");
-
-    getFileStmt = connection.prepareStatement(
-      "SELECT * FROM " + FILE_TABLE +
-        " WHERE " +
-        "`name`=?");
+  @Column(nullable = false)
+  public String getName() {
+    return name;
   }
 
-  /**
-   * @return The singleton instance of the <code>FileDAO</code>.
-   */
-  public static FileDAO getInstance() {
-    if (instance == null) instance = new FileDAO();
-
-    return instance;
+  public void setName(String name) {
+    this.name = name;
   }
 
-  /**
-   * Retrieves all files the provided user has access to.
-   *
-   * @param user The user to check which files it has access to.
-   * @return A list of <code>FileInfoDTO</code>.
-   * @throws SQLException When the query fails...
-   */
-  public List<FileInfoDTO> getFiles(User user) throws SQLException {
-    try {
-      getFilesStmt.setLong(1, user.getId());
-
-      ResultSet result = getFilesStmt.executeQuery();
-
-      List<FileInfoDTO> files = new ArrayList<>();
-
-      while (result.next()) {
-        try {
-          files.add(createFileInfo(result));
-        } catch (Exception e) {
-          System.err.println("Failed to add user...");
-          e.printStackTrace();
-        } catch (UserDoesNotExistException e) {
-          e.printStackTrace();
-        }
-      }
-
-      return files;
-    } catch (SQLException e) {
-      System.err.println("Failed to execute the getFiles query!");
-      e.printStackTrace();
-
-      throw e;
-    }
+  @Column(nullable = false)
+  public int getSize() {
+    return size;
   }
 
-  private FileInfoDTO createFileInfo(ResultSet result) throws SQLException, UserDoesNotExistException {
-    String name = result.getString("name");
-    long size = result.getLong("size");
-    String owner = UserDAO.getInstance().getUsername(result.getInt("owner"));
-    boolean isPublic = result.getBoolean("public");
-    boolean read = result.getBoolean("read");
-    boolean write = result.getBoolean("write");
-
-    return new FileInfoDTO(name, size, owner, isPublic, read, write);
+  @Column(nullable = false)
+  public void setSize(int size) {
+    this.size = size;
   }
 
-  /**
-   * Retrieves information about a specific file.
-   *
-   * @param filename The file to retrieve information about.
-   * @return <code>FileInfoDTO</code> with the file info.
-   * @throws FileNotFoundException If the file was not found.
-   * @throws SQLException When the query fails.
-   */
-  public FileInfoDTO getFile(String filename) throws FileNotFoundException, SQLException, UserDoesNotExistException {
-    try {
-      getFileStmt.setString(1, filename);
-      ResultSet result = getFileStmt.executeQuery();
+  @Column(nullable = false)
+  @ManyToOne
+  public UserDAO getOwner() {
+    return owner;
+  }
 
-      if (!result.next()) throw new FileNotFoundException("The file does not exist!");
+  @Column(nullable = false)
+  public void setOwner(UserDAO owner) {
+    this.owner = owner;
+  }
 
-      return createFileInfo(result);
-    } catch (SQLException e) {
-      System.err.println("Failed to execute getFile query!");
-      e.printStackTrace();
+  @Column(nullable = false)
+  public boolean isPublicAccess() {
+    return publicAccess;
+  }
 
-      throw e;
-    } catch (UserDoesNotExistException e) {
-      e.printStackTrace();
+  public void setPublicAccess(boolean publicAccess) {
+    this.publicAccess = publicAccess;
+  }
 
-      throw e;
-    }
+  @Column(nullable = false)
+  public boolean isWrite() {
+    return write;
+  }
+
+  public void setWrite(boolean write) {
+    this.write = write;
+  }
+
+  @Column(nullable = false)
+  public boolean isRead() {
+    return read;
+  }
+
+  public void setRead(boolean read) {
+    this.read = read;
   }
 }

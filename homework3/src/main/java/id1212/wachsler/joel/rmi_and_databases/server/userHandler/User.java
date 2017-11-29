@@ -1,6 +1,5 @@
 package id1212.wachsler.joel.rmi_and_databases.server.userHandler;
 
-import com.sun.istack.internal.NotNull;
 import id1212.wachsler.joel.rmi_and_databases.common.Listener;
 import id1212.wachsler.joel.rmi_and_databases.common.dto.CredentialDTO;
 import id1212.wachsler.joel.rmi_and_databases.common.exceptions.RegisterException;
@@ -21,7 +20,7 @@ public class User {
     userDAO = UserDAO.getInstance();
   }
 
-  public User(Listener console, CredentialDTO credentials) {
+  User(Listener console, CredentialDTO credentials) {
     init();
 
     this.credentials = credentials;
@@ -57,7 +56,7 @@ public class User {
   }
 
   /**
-   * @return The ID of the current user
+   * @return Id of the current user.
    */
   public long getId() {
     return id;

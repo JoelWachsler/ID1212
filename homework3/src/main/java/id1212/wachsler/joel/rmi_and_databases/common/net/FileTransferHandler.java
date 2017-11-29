@@ -9,11 +9,14 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.EnumSet;
 
+/**
+ * File handling over a TCP socket using NIO.
+ */
 public class FileTransferHandler {
   private static final int initBufferSize = 1024;
 
   /**
-   * Handles the receiving of a file over a TCP socket.
+   * Handles receiving of a file over a TCP socket.
    *
    * @param channel The channel to receive the file from.
    * @param filename The name of the file to be uploaded.
