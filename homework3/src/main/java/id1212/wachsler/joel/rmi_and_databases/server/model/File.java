@@ -46,15 +46,35 @@ class File {
       if (fileDAO.getOwner().getId() != user.getId() && !fileDAO.isWritable())
         throw new IllegalAccessException("The file is not owned by you and is not writable!");
 
-      if (fileDAO.getOwner().getId() == user.getId())
-        insertNewFileRecordAndUpload(socketChannel);
+      if (fileDAO.getOwner().getId() == user.getId()) {
+        updateFileRecord(fileDAO);
+      }
     } catch (NoResultException e) {
       // The record doesn't exist -> we're free to upload
-      insertNewFileRecordAndUpload(socketChannel);
+      insertNewFileRecord();
+      uploadFile(socketChannel, filename);
     }
   }
 
-  private void insertNewFileRecordAndUpload(SocketChannel socketChannel) {
+  private void updateFileRecord(FileDAO fileDAO) {
+    Session session = FileDAO.getSession();
+    try {
+      session.beginTransaction();
+      fileDAO.setName(filename);
+      fileDAO.setPublicAccess(publicAccess);
+      fileDAO.setReadable(readable);
+      fileDAO.setWritable(writable);
+
+      session.save(fileDAO);
+      session.getTransaction().commit();
+    } catch (Exception e) {
+      session.getTransaction().rollback();
+    } finally {
+      session.close();
+    }
+  }
+
+  private void insertNewFileRecord() {
     Session session = FileDAO.getSession();
     try {
       session.beginTransaction();
@@ -67,7 +87,6 @@ class File {
 
       session.save(fileDAO);
       session.getTransaction().commit();
-      uploadFile(socketChannel, filename);
     } catch (Exception e) {
       session.getTransaction().rollback();
     } finally {
