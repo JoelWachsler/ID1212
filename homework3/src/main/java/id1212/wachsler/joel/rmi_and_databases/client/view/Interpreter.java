@@ -21,6 +21,7 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayDeque;
 import java.util.Queue;
 import java.util.Scanner;
+import java.util.Stack;
 import java.util.logging.FileHandler;
 
 public class Interpreter implements Runnable {
@@ -154,7 +155,7 @@ public class Interpreter implements Runnable {
     private static final String PROMPT = "> ";
     private final ThreadSafeStdOut outMsg = new ThreadSafeStdOut();
     private final Scanner console = new Scanner(System.in);
-    private final Queue<Exception> exceptionList = new ArrayDeque<>();
+    private final Stack<Exception> exceptionList = new Stack<>();
 
     Console() throws RemoteException {
     }
@@ -167,7 +168,7 @@ public class Interpreter implements Runnable {
 
     @Override
     public void error(String error, Exception e) {
-      exceptionList.add(e);
+      exceptionList.push(e);
 
       outMsg.println("ERROR:");
       outMsg.println(error);
@@ -185,7 +186,7 @@ public class Interpreter implements Runnable {
     }
 
     void printTrace() throws RemoteException {
-      exceptionList.poll().printStackTrace();
+      exceptionList.pop().printStackTrace();
     }
   }
 }
