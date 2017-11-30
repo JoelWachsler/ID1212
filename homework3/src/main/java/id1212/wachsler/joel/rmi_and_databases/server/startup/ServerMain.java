@@ -2,7 +2,7 @@ package id1212.wachsler.joel.rmi_and_databases.server.startup;
 
 import id1212.wachsler.joel.rmi_and_databases.common.FileServer;
 import id1212.wachsler.joel.rmi_and_databases.server.controller.Controller;
-import id1212.wachsler.joel.rmi_and_databases.server.integration.HibernateSession;
+import id1212.wachsler.joel.rmi_and_databases.server.model.HibernateSession;
 import id1212.wachsler.joel.rmi_and_databases.server.net.Listener;
 
 import java.net.BindException;

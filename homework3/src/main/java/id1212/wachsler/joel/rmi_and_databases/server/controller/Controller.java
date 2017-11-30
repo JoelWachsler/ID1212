@@ -3,9 +3,14 @@ package id1212.wachsler.joel.rmi_and_databases.server.controller;
 import id1212.wachsler.joel.rmi_and_databases.common.Listener;
 import id1212.wachsler.joel.rmi_and_databases.common.*;
 import id1212.wachsler.joel.rmi_and_databases.common.dto.CredentialDTO;
+import id1212.wachsler.joel.rmi_and_databases.common.dto.FileDTO;
 import id1212.wachsler.joel.rmi_and_databases.common.exceptions.RegisterException;
-import id1212.wachsler.joel.rmi_and_databases.server.model.User;
+import id1212.wachsler.joel.rmi_and_databases.server.integration.FileDAO;
+import id1212.wachsler.joel.rmi_and_databases.server.integration.UserDAO;
+import id1212.wachsler.joel.rmi_and_databases.server.model.ClientManager;
+import id1212.wachsler.joel.rmi_and_databases.server.model.File;
 
+import javax.persistence.NoResultException;
 import javax.security.auth.login.LoginException;
 import java.nio.channels.SocketChannel;
 import java.rmi.RemoteException;
@@ -17,7 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Controller for the file server which is directly called by other nodes.
  */
 public class Controller extends UnicastRemoteObject implements FileServer {
-  private final Map<Long, User> users = new ConcurrentHashMap<>();
+  private final Map<Long, ClientManager> clients = new ConcurrentHashMap<>();
 
   public Controller() throws RemoteException {
   }
@@ -27,11 +32,11 @@ public class Controller extends UnicastRemoteObject implements FileServer {
    */
   @Override
   public long login(Listener console, CredentialDTO credentialDTO) throws RemoteException, LoginException {
-    User user = new User(credentialDTO);
-    user.addListener(console);
+    ClientManager client = new ClientManager(credentialDTO);
+    client.addListener(console);
 
-    long id = user.login();
-    users.put(id, user);
+    long id = client.login();
+    clients.put(id, client);
 
     return id;
   }
@@ -40,10 +45,11 @@ public class Controller extends UnicastRemoteObject implements FileServer {
    * @see FileServer#register(Listener, CredentialDTO)
    */
   @Override
-  public void register(Listener console, CredentialDTO credentials) throws RemoteException, RegisterException {
-    User user = new User(credentials);
-    user.addListener(console);
-    user.register();
+  public long register(Listener console, CredentialDTO credentials) throws RemoteException, RegisterException, LoginException {
+    ClientManager client = new ClientManager(credentials);
+    client.register();
+
+    return login(console, credentials);
   }
 
   /**
@@ -57,14 +63,26 @@ public class Controller extends UnicastRemoteObject implements FileServer {
    * @see FileServer#upload(long, String, boolean, boolean, boolean)
    */
   @Override
-  public void upload(long userId, String filename, boolean publicAccess, boolean readable, boolean writable) throws RemoteException, IllegalAccessException {
-    users.get(userId).upload(filename, publicAccess, readable, writable);
+  public void upload(long userId, FileDTO fileDTO) throws RemoteException, IllegalAccessException {
+    UserDAO user = clients.get(userId);
+    FileDAO fileDAO = new FileDAO();
+    File file;
+
+    try {
+      file = fileDAO.getFileByName(fileDTO.getFilename());
+    } catch (NoResultException e) {
+      // File doesn't exist and we're allowed to do whatever
+      fileDAO.insert(user, fileDTO);
+    }
+
+
+    clients.get(userId).upload();
   }
 
   /**
-   * @see User#attachSocketHandler(SocketChannel)
+   * @see UserDAO#attachSocketHandler(SocketChannel)
    */
   public void attachSocketToUser(long userId, SocketChannel socketChannel) throws RemoteException {
-    users.get(userId).attachSocketHandler(socketChannel);
+    clients.get(userId).attachSocketHandler(socketChannel);
   }
 }

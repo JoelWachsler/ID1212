@@ -22,6 +22,7 @@ class ClientHandler {
     try {
       SocketIdentifierDTO identifier = (SocketIdentifierDTO) inputStream.readObject();
       controller.attachSocketToUser(identifier.getUserId(), socketChannel);
+      System.out.println(String.format("The user: %d was associated!", identifier.getUserId()));
     } catch (IOException | ClassNotFoundException e) {
       e.printStackTrace();
     }

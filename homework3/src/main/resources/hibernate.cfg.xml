@@ -19,7 +19,7 @@
     <property name="hbm2ddl.auto">create</property>
 
     <!-- List of XML mapping files -->
-    <mapping class="id1212.wachsler.joel.rmi_and_databases.server.integration.UserDAO"/>
-    <mapping class="id1212.wachsler.joel.rmi_and_databases.server.integration.FileDAO"/>
+    <mapping class="id1212.wachsler.joel.rmi_and_databases.server.model.User"/>
+    <mapping class="id1212.wachsler.joel.rmi_and_databases.server.model.File"/>
   </session-factory>
 </hibernate-configuration>

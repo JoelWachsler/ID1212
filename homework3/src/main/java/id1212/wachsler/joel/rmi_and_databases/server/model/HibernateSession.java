@@ -1,4 +1,4 @@
-package id1212.wachsler.joel.rmi_and_databases.server.integration;
+package id1212.wachsler.joel.rmi_and_databases.server.model;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;

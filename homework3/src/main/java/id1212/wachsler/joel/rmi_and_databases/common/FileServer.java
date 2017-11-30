@@ -32,7 +32,7 @@ public interface FileServer extends Remote {
    * @throws RemoteException When something goes wrong with the communication.
    * @throws RegisterException When something goes wrong with the registration.
    */
-  void register(Listener console, CredentialDTO credentialDTO) throws RemoteException, RegisterException;
+  void register(Listener console, CredentialDTO credentialDTO) throws RemoteException, RegisterException, LoginException;
 
   /**
    * Users should be able to view their files.
@@ -52,5 +52,5 @@ public interface FileServer extends Remote {
    * @param readable If the file is public should it be readable by other users.
    * @param writable If the file is public should it be writable by other users.
    */
-  void upload(long userId, String serverFilename, boolean publicAccess, boolean readable, boolean writable) throws RemoteException, IllegalAccessException;
+  void upload(long userId, String serverFilename, long fileSize, boolean publicAccess, boolean readable, boolean writable) throws RemoteException, IllegalAccessException;
 }

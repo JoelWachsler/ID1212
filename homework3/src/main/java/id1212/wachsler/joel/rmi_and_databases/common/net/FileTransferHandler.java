@@ -22,7 +22,7 @@ public class FileTransferHandler {
    * @param filename The name of the file to be uploaded.
    * @throws IOException If something goes wrong with the file transfer.
    */
-  public static void receiveFile(SocketChannel channel, String filename) throws IOException {
+  public static void receiveFile(SocketChannel channel, long fileSize, String filename) throws IOException {
     Path path = Paths.get(filename);
 
     try (FileChannel fileChannel = FileChannel.open(path,
@@ -34,11 +34,12 @@ public class FileTransferHandler {
       while (channel.read(buffer) > 0) {
         buffer.flip();
         fileChannel.write(buffer);
+        System.out.println("Buffer size: " + buffer.position());
         buffer.clear();
       }
 
       System.out.println("File uploaded!");
-      channel.shutdownInput();
+      // channel.shutdownInput();
     }
   }
 
@@ -60,7 +61,7 @@ public class FileTransferHandler {
         buffer.clear();
       }
 
-      channel.shutdownOutput();
+      // channel.shutdownOutput();
     }
   }
 }
