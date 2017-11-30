@@ -48,6 +48,7 @@ class File {
 
       if (fileDAO.getOwner().getId() == user.getId()) {
         updateFileRecord(fileDAO);
+        uploadFile(socketChannel, filename);
       }
     } catch (NoResultException e) {
       // The record doesn't exist -> we're free to upload
@@ -60,7 +61,6 @@ class File {
     Session session = FileDAO.getSession();
     try {
       session.beginTransaction();
-      fileDAO.setName(filename);
       fileDAO.setPublicAccess(publicAccess);
       fileDAO.setReadable(readable);
       fileDAO.setWritable(writable);
