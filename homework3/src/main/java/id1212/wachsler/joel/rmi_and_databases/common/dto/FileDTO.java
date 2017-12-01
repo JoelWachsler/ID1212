@@ -1,5 +1,6 @@
 package id1212.wachsler.joel.rmi_and_databases.common.dto;
 
+import id1212.wachsler.joel.rmi_and_databases.server.integration.FileDAO;
 import id1212.wachsler.joel.rmi_and_databases.server.model.File;
 
 import java.io.Serializable;
@@ -19,6 +20,15 @@ public class FileDTO implements Serializable {
     this.publicAccess = publicAccess;
     this.readable = readable;
     this.writable = writable;
+  }
+
+  public FileDTO(File file) {
+    this.owner = file.getOwner().getId();
+    this.filename = file.getName();
+    this.size = file.getSize();
+    this.publicAccess = file.isPublicAccess();
+    this.readable = file.isReadable();
+    this.writable = file.isWritable();
   }
 
   public long getOwner() {

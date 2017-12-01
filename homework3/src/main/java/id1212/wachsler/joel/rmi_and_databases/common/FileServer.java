@@ -5,6 +5,7 @@ import id1212.wachsler.joel.rmi_and_databases.common.dto.FileDTO;
 import id1212.wachsler.joel.rmi_and_databases.common.exceptions.RegisterException;
 
 import javax.security.auth.login.LoginException;
+import java.io.IOException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
@@ -51,6 +52,10 @@ public interface FileServer extends Remote {
    * @param fileDTO Container for file information.
    */
   void upload(long userId, FileDTO fileDTO) throws RemoteException, IllegalAccessException;
+
+  FileDTO getFileInfo(long userId, String filename) throws RemoteException, IllegalAccessException;
+
+  void download(long userId, String filename) throws IOException, IllegalAccessException;
 
   /**
    * @param userId The user to logout.

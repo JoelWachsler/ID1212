@@ -14,6 +14,7 @@ import javax.persistence.NoResultException;
 import javax.security.auth.login.LoginException;
 import java.io.IOException;
 import java.nio.channels.SocketChannel;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
@@ -119,6 +120,43 @@ public class Controller extends UnicastRemoteObject implements FileServer {
       // File doesn't exist and we're allowed to do whatever
       fileDAO.insert(user, fileDTO);
       uploadFile(user, fileDTO);
+    }
+  }
+
+  @Override
+  public FileDTO getFileInfo(long userId, String filename) throws RemoteException, IllegalAccessException {
+    ClientManager user = auth(userId);
+    FileDAO fileDAO = new FileDAO();
+
+    File file = fileDAO.getFileByName(filename);
+
+    if (file.getOwner().getId() == user.getUser().getId()) {
+      return new FileDTO(file);
+    } else if (!file.isPublicAccess()) {
+      throw new IllegalAccessException("You're not the owner and the file is not public!");
+    } else if (!file.isReadable()) {
+      throw new IllegalAccessException("You're not the owner of the file and the file is not readable!");
+    } else {
+      return new FileDTO(file);
+    }
+  }
+
+  @Override
+  public void download(long userId, String filename) throws IOException, IllegalAccessException {
+    ClientManager user = auth(userId);
+    FileDAO fileDAO = new FileDAO();
+
+    File file = fileDAO.getFileByName(filename);
+    Path serverFilePath = Paths.get("server_files/" + filename);
+
+    if (file.getOwner().getId() == user.getUser().getId()) {
+      FileTransferHandler.sendFile(user.getSocketChannel(), serverFilePath);
+    } else if (!file.isPublicAccess()) {
+      throw new IllegalAccessException("You're not the owner and the file is not public!");
+    } else if (!file.isReadable()) {
+      throw new IllegalAccessException("You're not the owner of the file and the file is not readable!");
+    } else {
+      FileTransferHandler.sendFile(user.getSocketChannel(), serverFilePath);
     }
   }
 

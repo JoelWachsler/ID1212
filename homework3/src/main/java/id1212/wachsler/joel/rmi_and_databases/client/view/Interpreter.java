@@ -1,12 +1,12 @@
 package id1212.wachsler.joel.rmi_and_databases.client.view;
 
-import com.sun.javafx.binding.StringFormatter;
 import id1212.wachsler.joel.rmi_and_databases.common.*;
 import id1212.wachsler.joel.rmi_and_databases.common.dto.CredentialDTO;
 import id1212.wachsler.joel.rmi_and_databases.common.dto.FileDTO;
 import id1212.wachsler.joel.rmi_and_databases.common.dto.SocketIdentifierDTO;
 import id1212.wachsler.joel.rmi_and_databases.common.exceptions.RegisterException;
 import id1212.wachsler.joel.rmi_and_databases.common.net.FileTransferHandler;
+import id1212.wachsler.joel.rmi_and_databases.server.integration.FileDAO;
 
 import javax.security.auth.login.LoginException;
 import java.io.FileNotFoundException;
@@ -15,16 +15,12 @@ import java.io.ObjectOutputStream;
 import java.net.InetSocketAddress;
 import java.nio.channels.SocketChannel;
 import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.ArrayDeque;
-import java.util.Queue;
 import java.util.Scanner;
 import java.util.Stack;
-import java.util.logging.FileHandler;
 
 public class Interpreter implements Runnable {
   private FileServer server;
@@ -64,6 +60,7 @@ public class Interpreter implements Runnable {
           case REGISTER:  register(); break;
           case LIST:      list();     break;
           case UPLOAD:    upload();   break;
+          case DOWNLOAD:  download(); break;
           case TRACE:     console.printTrace(); break;
           case QUIT:
             server.logout(userId);
@@ -80,9 +77,25 @@ public class Interpreter implements Runnable {
     }
   }
 
-  private void upload() throws IOException, InvalidCommandException, IllegalAccessException {
-    if (userId == 0) throw new IllegalAccessException("You must be authenticated in order to upload!");
+  private void download() throws IOException, IllegalAccessException, InvalidCommandException {
+    try {
+      String filename = parser.getArg(0);
 
+      FileDTO serverFileInfo = server.getFileInfo(userId, filename);
+      server.download(userId, filename);
+
+      Path savePath = Paths.get("client_files/" + filename);
+      FileTransferHandler.receiveFile(socket, savePath, serverFileInfo.getSize());
+      console.print("File downloaded!");
+    } catch (InvalidCommandException e) {
+      throw new InvalidCommandException(
+        "Invalid use of the download command!\n" +
+          "the correct way is:\n" +
+          "download <server filename:string>");
+    }
+  }
+
+  private void upload() throws IOException, InvalidCommandException, IllegalAccessException {
     try {
       String localFilename = parser.getArg(0);
 
@@ -151,7 +164,6 @@ public class Interpreter implements Runnable {
 
     output.writeObject(new SocketIdentifierDTO(userId));
     output.flush();
-    // output.reset();
   }
 
   private CredentialDTO createCredentials(CmdLineParser parser) throws InvalidCommandException {

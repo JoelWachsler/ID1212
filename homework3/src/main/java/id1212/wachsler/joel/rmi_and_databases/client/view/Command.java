@@ -17,6 +17,10 @@ public enum Command {
    */
   LIST,
   /**
+   * Downloads the specified file.
+   */
+  DOWNLOAD,
+  /**
    * Uploads the specified file.
    */
   UPLOAD,
