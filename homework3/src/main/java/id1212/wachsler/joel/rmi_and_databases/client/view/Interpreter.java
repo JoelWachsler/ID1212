@@ -151,12 +151,13 @@ public class Interpreter implements Runnable {
 
     output.writeObject(new SocketIdentifierDTO(userId));
     output.flush();
-    output.reset();
+    // output.reset();
   }
 
   private CredentialDTO createCredentials(CmdLineParser parser) throws InvalidCommandException {
     String username = parser.getArg(0);
     String password = parser.getArg(1);
+
     return new CredentialDTO(username, password);
   }
 

@@ -48,12 +48,13 @@ public class FileTransferHandler {
    * Handles sending of a file over a TCP socket.
    *
    * @param channel The channel to receive the file from.
-   * @param file A <code>FileDTO</code> object containing various file information.
+   * @param path Path to the file to upload.
    * @throws IOException If something goes wrong with the file transfer.
    */
   public static void sendFile(SocketChannel channel, Path path) throws IOException {
     try (FileChannel fileChannel = FileChannel.open(path)) {
       ByteBuffer buffer = ByteBuffer.allocate(initBufferSize);
+
       while (fileChannel.read(buffer) > 0) {
         buffer.flip();
         channel.write(buffer);

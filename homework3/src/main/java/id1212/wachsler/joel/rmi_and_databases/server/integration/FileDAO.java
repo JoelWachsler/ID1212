@@ -3,7 +3,6 @@ package id1212.wachsler.joel.rmi_and_databases.server.integration;
 import id1212.wachsler.joel.rmi_and_databases.common.dto.FileDTO;
 import id1212.wachsler.joel.rmi_and_databases.server.model.ClientManager;
 import id1212.wachsler.joel.rmi_and_databases.server.model.File;
-import id1212.wachsler.joel.rmi_and_databases.server.model.User;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
 
@@ -62,7 +61,7 @@ public class FileDAO {
       file.setWritable(fileDTO.isWritable());
       file.setSize(fileDTO.getSize());
 
-      session.save(file);
+      session.update(file);
       session.getTransaction().commit();
     } catch (Exception e) {
       session.getTransaction().rollback();
