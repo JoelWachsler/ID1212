@@ -1,6 +1,5 @@
 package id1212.wachsler.joel.rmi_and_databases.server.integration;
 
-import id1212.wachsler.joel.rmi_and_databases.common.Listener;
 import id1212.wachsler.joel.rmi_and_databases.common.dto.CredentialDTO;
 import id1212.wachsler.joel.rmi_and_databases.common.exceptions.RegisterException;
 import id1212.wachsler.joel.rmi_and_databases.server.model.User;
@@ -9,23 +8,15 @@ import org.hibernate.query.Query;
 
 import javax.persistence.NoResultException;
 import javax.security.auth.login.LoginException;
-import java.nio.channels.SocketChannel;
 import java.rmi.RemoteException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 public class UserDAO {
   private User userDao;
 
-  public UserDAO() {
-  }
-
-  private boolean userWithUsernameExists() {
-    try {
-      Session session = User.getSession();
+  private boolean userWithUsernameExists(String username) {
+    try (Session session = User.getSession()) {
       Query query = session.createQuery("Select ua from User ua where ua.username=:username");
-      query.setParameter("username", credentials.getUsername());
+      query.setParameter("username", username);
 
       query.getSingleResult();
 
@@ -39,28 +30,31 @@ public class UserDAO {
    * Registers a user using the <code>CredentialDTO</code> from the constructor.
    *
    * @throws RemoteException When something with the communication goes wrong.
-   * @param credentialDTO
+   * @param credentials The credentials used to register.
    */
-  public long register(CredentialDTO credentials) throws RemoteException, RegisterException {
+  public void register(CredentialDTO credentials) throws RemoteException, RegisterException {
     userDao = new User();
 
-    if (userWithUsernameExists())
+    // Not needed on certain databases.
+    if (userWithUsernameExists(credentials.getUsername()))
       throw new RegisterException("A user with that username already exists!");
+
+    Session session = User.getSession();
 
     try {
       userDao.setUsername(credentials.getUsername());
       userDao.setPassword(credentials.getPassword());
 
-      Session session = User.getSession();
       session.beginTransaction();
       session.save(userDao);
 
       session.getTransaction().commit();
-
-      alertListeners("You are now registered!");
     } catch (Exception e) {
+      session.getTransaction().rollback();
       e.printStackTrace();
       throw e;
+    } finally {
+      session.close();
     }
   }
 
@@ -71,19 +65,15 @@ public class UserDAO {
    * @throws LoginException When invalid credentials were provided.
    * @throws RemoteException When something with the communication goes wrong.
    */
-  public long login(CredentialDTO credentials) throws LoginException, RemoteException {
-    Session session = User.getSession();
-    try {
+  public User login(CredentialDTO credentials) throws LoginException, RemoteException {
+    try (Session session = User.getSession()) {
       session.beginTransaction();
       Query query = session.createQuery("Select ua from User ua where ua.username=:username and ua.password=:password");
 
       query.setParameter("username", credentials.getUsername());
       query.setParameter("password", credentials.getPassword());
 
-      userDao = (User) query.getSingleResult();
-      alertListeners(String.format("You are now logged in and your id is: %d", userDao.getId()));
-
-      return userDao.getId();
+      return (User) query.getSingleResult();
     } catch (NoResultException e) {
       throw new LoginException("Wrong username or password!");
     }

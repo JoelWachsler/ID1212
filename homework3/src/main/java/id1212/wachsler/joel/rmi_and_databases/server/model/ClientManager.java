@@ -16,23 +16,28 @@ import java.util.concurrent.CompletableFuture;
  * Handles a connected client.
  */
 public class ClientManager {
-  private final UserDAO userDAO;
-  private CredentialDTO credentialDTO;
-  private Listener console;
+  private final UserDAO userDAO = new UserDAO();
+  private User userInfo;
   private SocketChannel socketChannel;
   private List<Listener> listeners = new ArrayList<>();
 
-  public ClientManager(CredentialDTO credentialDTO) {
-    this.credentialDTO = credentialDTO;
-    userDAO = new UserDAO();
+  /**
+   * @see UserDAO#login(CredentialDTO)
+   */
+  public long login(CredentialDTO credentials) throws LoginException, RemoteException {
+    userInfo = userDAO.login(credentials);
+    alertListeners("You are now logged in and your id is: " + userInfo.getId());
+
+    return userInfo.getId();
   }
 
-  public long login() throws LoginException, RemoteException {
-    return userDAO.login(credentialDTO);
-  }
+  /**
+   * @see UserDAO#register(CredentialDTO)
+   */
+  public void register(CredentialDTO credentials) throws RemoteException, RegisterException {
+    userDAO.register(credentials);
 
-  public long register() throws RemoteException, RegisterException {
-    return userDAO.register(credentialDTO);
+    alertListeners("You are now registered!");
   }
 
   /**
@@ -53,15 +58,13 @@ public class ClientManager {
    * @throws RemoteException When something with the communication goes wrong.
    */
   void alertListeners(String message) throws RemoteException {
-    CompletableFuture.runAsync(() -> {
-      listeners.forEach(listener -> {
-        try {
-          listener.print(message);
-        } catch (RemoteException e) {
-          e.printStackTrace();
-        }
-      });
-    });
+    CompletableFuture.runAsync(() -> listeners.forEach(listener -> {
+      try {
+        listener.print(message);
+      } catch (RemoteException e) {
+        e.printStackTrace();
+      }
+    }));
   }
 
   /**
