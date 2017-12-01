@@ -1,53 +1,81 @@
 package id1212.wachsler.joel.rmi_and_databases.server.integration;
 
-import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.Collection;
+import id1212.wachsler.joel.rmi_and_databases.common.dto.CredentialDTO;
+import id1212.wachsler.joel.rmi_and_databases.common.exceptions.RegisterException;
+import id1212.wachsler.joel.rmi_and_databases.server.model.User;
+import org.hibernate.Session;
+import org.hibernate.query.Query;
 
-/**
- * Data access object used to communicate with the database.
- */
-@Entity(name = "User")
-public class UserDAO extends HibernateSession {
+import javax.persistence.NoResultException;
+import javax.security.auth.login.LoginException;
+import java.rmi.RemoteException;
 
-  @Id @GeneratedValue(strategy = GenerationType.AUTO)
-  private long id;
-  @Column(unique = true, nullable = false)
-  private String username;
-  @Column(nullable = false)
-  private String password;
-  @OneToMany(mappedBy = "owner")
-  private Collection<FileDAO> files = new ArrayList<>();
+public class UserDAO {
+  private User userDao;
 
-  public long getId() {
-    return id;
+  private boolean userWithUsernameExists(String username) {
+    try (Session session = User.getSession()) {
+      Query query = session.createQuery("Select ua from User ua where ua.username=:username");
+      query.setParameter("username", username);
+
+      query.getSingleResult();
+
+      return true;
+    } catch (NoResultException e) {
+      return false;
+    }
   }
 
-  public void setId(long id) {
-    this.id = id;
+  /**
+   * Registers a user using the <code>CredentialDTO</code> from the constructor.
+   *
+   * @throws RemoteException When something with the communication goes wrong.
+   * @param credentials The credentials used to register.
+   */
+  public void register(CredentialDTO credentials) throws RemoteException, RegisterException {
+    userDao = new User();
+
+    // Not needed on certain databases.
+    if (userWithUsernameExists(credentials.getUsername()))
+      throw new RegisterException("A user with that username already exists!");
+
+    Session session = User.getSession();
+
+    try {
+      userDao.setUsername(credentials.getUsername());
+      userDao.setPassword(credentials.getPassword());
+
+      session.beginTransaction();
+      session.save(userDao);
+
+      session.getTransaction().commit();
+    } catch (Exception e) {
+      session.getTransaction().rollback();
+      e.printStackTrace();
+      throw e;
+    } finally {
+      session.close();
+    }
   }
 
-  public String getUsername() {
-    return username;
-  }
+  /**
+   * Authenticates users.
+   *
+   * @return The id of the authenticated in user.
+   * @throws LoginException When invalid credentials were provided.
+   * @throws RemoteException When something with the communication goes wrong.
+   */
+  public User login(CredentialDTO credentials) throws LoginException, RemoteException {
+    try (Session session = User.getSession()) {
+      session.beginTransaction();
+      Query query = session.createQuery("Select ua from User ua where ua.username=:username and ua.password=:password");
 
-  public void setUsername(String username) {
-    this.username = username;
-  }
+      query.setParameter("username", credentials.getUsername());
+      query.setParameter("password", credentials.getPassword());
 
-  public String getPassword() {
-    return password;
-  }
-
-  public void setPassword(String password) {
-    this.password = password;
-  }
-
-  public Collection<FileDAO> getFiles() {
-    return files;
-  }
-
-  public void setFiles(Collection<FileDAO> files) {
-    this.files = files;
+      return (User) query.getSingleResult();
+    } catch (NoResultException e) {
+      throw new LoginException("Wrong username or password!");
+    }
   }
 }

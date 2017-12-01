@@ -1,78 +1,106 @@
 package id1212.wachsler.joel.rmi_and_databases.server.integration;
 
-import javax.persistence.*;
+import id1212.wachsler.joel.rmi_and_databases.common.dto.FileDTO;
+import id1212.wachsler.joel.rmi_and_databases.server.model.ClientManager;
+import id1212.wachsler.joel.rmi_and_databases.server.model.File;
+import id1212.wachsler.joel.rmi_and_databases.server.model.User;
+import org.hibernate.Session;
+import org.hibernate.query.Query;
 
-/**
- * Data access object used to communicate with the database.
- */
-@Entity(name = "File")
-public class FileDAO extends HibernateSession {
-  private long id;
-  private String name;
-  private int size;
-  private UserDAO owner;
-  private boolean publicAccess = false;
-  private boolean writable = false;
-  private boolean readable = false;
+import java.util.ArrayList;
+import java.util.List;
 
-  @Id @GeneratedValue(strategy = GenerationType.AUTO)
-  public long getId() {
-    return id;
+public class FileDAO {
+  /**
+   * @param filename The file to lookup.
+   * @return <code>File</code> containing various file information.
+   */
+  public File getFileByName(String filename) {
+    Session session = File.getSession();
+
+    Query query = session.createQuery("Select file from File file where file.name=:filename");
+    query.setParameter("filename", filename);
+
+    return (File) query.getSingleResult();
   }
 
-  public void setId(long id) {
-    this.id = id;
+  /**
+   * Inserts a new file record in the database.
+   * @param client The user who owns the object.
+   * @param fileDTO Information about the file to insert.
+   */
+  public void insert(ClientManager client, FileDTO fileDTO) {
+    Session session = File.getSession();
+
+    try {
+      session.beginTransaction();
+
+      File file = new File();
+      file.setOwner(client.getUser());
+      file.setName(fileDTO.getFilename());
+      file.setPublicAccess(fileDTO.isPublicAccess());
+      file.setSize(fileDTO.getSize());
+      file.setReadable(fileDTO.isReadable());
+      file.setWritable(fileDTO.isWritable());
+
+      session.save(file);
+      session.getTransaction().commit();
+    } catch (Exception e) {
+      session.getTransaction().rollback();
+      throw e;
+    } finally {
+      session.close();
+    }
   }
 
-  @Column(unique = true, nullable = false)
-  public String getName() {
-    return name;
+  public void update(FileDTO fileDTO) {
+    Session session = File.getSession();
+
+    try {
+      session.beginTransaction();
+
+      File file = getFileByName(fileDTO.getFilename());
+      file.setPublicAccess(fileDTO.isPublicAccess());
+      file.setReadable(fileDTO.isReadable());
+      file.setWritable(fileDTO.isWritable());
+      file.setSize(fileDTO.getSize());
+
+      session.update(file);
+      session.getTransaction().commit();
+    } catch (Exception e) {
+      session.getTransaction().rollback();
+      throw e;
+    } finally {
+      session.close();
+    }
   }
 
-  public void setName(String name) {
-    this.name = name;
+  public void updateFileSize(FileDTO fileDTO) {
+    Session session = File.getSession();
+
+    try {
+      session.beginTransaction();
+
+      File file = getFileByName(fileDTO.getFilename());
+      file.setSize(fileDTO.getSize());
+
+      session.update(file);
+      session.getTransaction().commit();
+    } catch (Exception e) {
+      session.getTransaction().rollback();
+      throw e;
+    } finally {
+      session.close();
+    }
   }
 
-  @Column(nullable = false)
-  public int getSize() {
-    return size;
-  }
+  @SuppressWarnings("unchecked")
+  public List<File> getFiles(User user) {
+    Session session = File.getSession();
 
-  @Column(nullable = false)
-  public void setSize(int size) {
-    this.size = size;
-  }
+    Query query = session.createQuery("Select file from File file where file.owner=:user or file.publicAccess = true");
+    query.setParameter("user", user);
 
-  public boolean isPublicAccess() {
-    return publicAccess;
-  }
-
-  public void setPublicAccess(boolean publicAccess) {
-    this.publicAccess = publicAccess;
-  }
-
-  public boolean isWritable() {
-    return writable;
-  }
-
-  public void setWritable(boolean write) {
-    this.writable = write;
-  }
-
-  public boolean isReadable() {
-    return readable;
-  }
-
-  public void setReadable(boolean read) {
-    this.readable = read;
-  }
-
-  @ManyToOne(optional = false)
-  public UserDAO getOwner() {
-    return owner;
-  }
-
-  public void setOwner(UserDAO owner) {
-    this.owner = owner;
+    return query.getResultList();
   }
 }

@@ -1,71 +1,80 @@
 package id1212.wachsler.joel.rmi_and_databases.server.model;
 
-import id1212.wachsler.joel.rmi_and_databases.common.net.FileTransferHandler;
-import id1212.wachsler.joel.rmi_and_databases.server.integration.FileDAO;
-import org.hibernate.Session;
-import org.hibernate.query.Query;
+import id1212.wachsler.joel.rmi_and_databases.server.integration.HibernateSession;
 
-import java.io.IOException;
-import java.nio.channels.SocketChannel;
-import java.util.concurrent.CompletableFuture;
+import javax.persistence.*;
 
-class File {
+/**
+ * Data access object used to communicate with the database.
+ */
+@Entity(name = "File")
+public class File extends HibernateSession {
+  private long id;
+  private String name;
+  private long size;
+  private User owner;
+  private boolean publicAccess = false;
+  private boolean writable = false;
+  private boolean readable = false;
 
-  private long userId;
-  private String filename;
-  private boolean publicAccess;
-  private boolean readable;
-  private boolean writable;
-
-  void setUserId(long userId) {
-    this.userId = userId;
+  @Id @GeneratedValue(strategy = GenerationType.AUTO)
+  public long getId() {
+    return id;
   }
 
-  void setFilename(String filename) {
-    this.filename = filename;
+  public void setId(long id) {
+    this.id = id;
   }
 
-  void setPublicAccess(boolean publicAccess) {
+  @Column(unique = true, nullable = false)
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  @Column(nullable = false)
+  public long getSize() {
+    return size;
+  }
+
+  @Column(nullable = false)
+  public void setSize(long size) {
+    this.size = size;
+  }
+
+  public boolean isPublicAccess() {
+    return publicAccess;
+  }
+
+  public void setPublicAccess(boolean publicAccess) {
     this.publicAccess = publicAccess;
   }
 
-  void setReadable(boolean readable) {
-    this.readable = readable;
+  public boolean isWritable() {
+    return writable;
   }
 
-  void setWritable(boolean writable) {
-    this.writable = writable;
+  public void setWritable(boolean write) {
+    this.writable = write;
   }
 
-  void upload(SocketChannel socketChannel) throws IllegalAccessException {
-    try {
-      FileDAO fileDAO = getFileByName(filename);
-
-      if (fileDAO.getOwner().getId() != userId && !fileDAO.isWritable())
-        throw new IllegalAccessException("The file is not owned by you and is not writable!");
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-
-//    uploadFile(socketChannel, filename);
+  public boolean isReadable() {
+    return readable;
   }
 
-  private void uploadFile(SocketChannel socketChannel, String filename) {
-    CompletableFuture.runAsync(() -> {
-      try {
-        FileTransferHandler.receiveFile(socketChannel, filename);
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
-    });
+  public void setReadable(boolean read) {
+    this.readable = read;
   }
 
-  private FileDAO getFileByName(String filename) {
-    Session session = FileDAO.getSession();
+  @ManyToOne(optional = false)
+  public User getOwner() {
+    return owner;
+  }
 
-    Query query = session.createQuery("Select file from File file where file.name=:filename");
-    query.setParameter("filename", filename);
-
-    return (FileDAO) query.getSingleResult();
+  public void setOwner(User owner) {
+    this.owner = owner;
   }
 }

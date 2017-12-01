@@ -2,19 +2,25 @@ package id1212.wachsler.joel.rmi_and_databases.client.view;
 
 import id1212.wachsler.joel.rmi_and_databases.common.*;
 import id1212.wachsler.joel.rmi_and_databases.common.dto.CredentialDTO;
+import id1212.wachsler.joel.rmi_and_databases.common.dto.FileDTO;
 import id1212.wachsler.joel.rmi_and_databases.common.dto.SocketIdentifierDTO;
 import id1212.wachsler.joel.rmi_and_databases.common.exceptions.RegisterException;
 import id1212.wachsler.joel.rmi_and_databases.common.net.FileTransferHandler;
+import id1212.wachsler.joel.rmi_and_databases.server.integration.FileDAO;
 
 import javax.security.auth.login.LoginException;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.InetSocketAddress;
 import java.nio.channels.SocketChannel;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Scanner;
-import java.util.logging.FileHandler;
+import java.util.Stack;
 
 public class Interpreter implements Runnable {
   private FileServer server;
@@ -54,8 +60,12 @@ public class Interpreter implements Runnable {
           case REGISTER:  register(); break;
           case LIST:      list();     break;
           case UPLOAD:    upload();   break;
+          case DOWNLOAD:  download(); break;
+          case TRACE:     console.printTrace(); break;
           case QUIT:
+            server.logout(userId);
             console.disconnect();
+            UnicastRemoteObject.unexportObject(console, true);
             running = false;
             break;
           default:
@@ -67,19 +77,45 @@ public class Interpreter implements Runnable {
     }
   }
 
-  private void upload() throws IOException, InvalidCommandException, IllegalAccessException {
-    if (userId == 0) throw new IllegalAccessException("You must be logged in to upload!");
+  private void download() throws IOException, IllegalAccessException, InvalidCommandException {
+    try {
+      String filename = parser.getArg(0);
 
+      FileDTO serverFileInfo = server.getFileInfo(userId, filename);
+      server.download(userId, filename);
+
+      Path savePath = Paths.get("client_files/" + filename);
+      FileTransferHandler.receiveFile(socket, savePath, serverFileInfo.getSize());
+      console.print("File downloaded!");
+    } catch (InvalidCommandException e) {
+      throw new InvalidCommandException(
+        "Invalid use of the download command!\n" +
+          "the correct way is:\n" +
+          "download <server filename:string>");
+    }
+  }
+
+  private void upload() throws IOException, InvalidCommandException, IllegalAccessException {
     try {
       String localFilename = parser.getArg(0);
+
+      Path filePath = Paths.get(String.format("client_files/%s", localFilename));
+
+      if (!Files.exists(filePath))
+        throw new FileNotFoundException(String.format("The file \"%s\" does not exist!", localFilename));
+
+      long fileSize = Files.size(filePath);
+
       String serverFilename = parser.getArg(1);
       boolean publicAccess = Boolean.valueOf(parser.getArg(2));
       boolean readable = Boolean.valueOf(parser.getArg(3));
       boolean writable = Boolean.valueOf(parser.getArg(4));
 
-      server.upload(userId, serverFilename, publicAccess, readable, writable);
+      FileDTO serverFile = new FileDTO(userId, serverFilename, fileSize, publicAccess, readable, writable);
 
-      FileTransferHandler.sendFile(socket, localFilename);
+      server.upload(userId, serverFile);
+
+      FileTransferHandler.sendFile(socket, filePath);
     } catch (InvalidCommandException e) {
       throw new InvalidCommandException(
         "Invalid use of the upload command!\n" +
@@ -92,10 +128,11 @@ public class Interpreter implements Runnable {
     server.list(userId);
   }
 
-  private void register() throws RemoteException, RegisterException, InvalidCommandException {
+  private void register() throws IOException, RegisterException, InvalidCommandException, LoginException {
     try {
       CredentialDTO credentialDTO = createCredentials(parser);
       server.register(console, credentialDTO);
+      login();
     } catch (InvalidCommandException e) {
       throw new InvalidCommandException(
         "Invalid use of the register command!\n" +
@@ -127,12 +164,12 @@ public class Interpreter implements Runnable {
 
     output.writeObject(new SocketIdentifierDTO(userId));
     output.flush();
-    output.reset();
   }
 
   private CredentialDTO createCredentials(CmdLineParser parser) throws InvalidCommandException {
     String username = parser.getArg(0);
     String password = parser.getArg(1);
+
     return new CredentialDTO(username, password);
   }
 
@@ -140,6 +177,7 @@ public class Interpreter implements Runnable {
     private static final String PROMPT = "> ";
     private final ThreadSafeStdOut outMsg = new ThreadSafeStdOut();
     private final Scanner console = new Scanner(System.in);
+    private final Stack<Exception> exceptionList = new Stack<>();
 
     Console() throws RemoteException {
     }
@@ -152,6 +190,8 @@ public class Interpreter implements Runnable {
 
     @Override
     public void error(String error, Exception e) {
+      exceptionList.push(e);
+
       outMsg.println("ERROR:");
       outMsg.println(error);
     }
@@ -165,6 +205,10 @@ public class Interpreter implements Runnable {
       outMsg.print(PROMPT);
 
       return console.nextLine();
+    }
+
+    void printTrace() throws RemoteException {
+      exceptionList.pop().printStackTrace();
     }
   }
 }

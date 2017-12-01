@@ -17,6 +17,10 @@ public enum Command {
    */
   LIST,
   /**
+   * Downloads the specified file.
+   */
+  DOWNLOAD,
+  /**
    * Uploads the specified file.
    */
   UPLOAD,
@@ -24,4 +28,8 @@ public enum Command {
    * Leave the application.
    */
   QUIT,
+  /**
+   * Prints the last stacktrace
+   */
+  TRACE,
 }

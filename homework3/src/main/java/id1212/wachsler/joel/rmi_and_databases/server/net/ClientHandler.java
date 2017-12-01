@@ -19,9 +19,12 @@ class ClientHandler {
 
   private void attachToUser(Controller controller, ObjectInputStream inputStream, SocketChannel socketChannel) {
     System.out.println("Waiting for the user to tell who they are...");
+
     try {
       SocketIdentifierDTO identifier = (SocketIdentifierDTO) inputStream.readObject();
       controller.attachSocketToUser(identifier.getUserId(), socketChannel);
+
+      System.out.println(String.format("The userId: %d was associated with a socket!", identifier.getUserId()));
     } catch (IOException | ClassNotFoundException e) {
       e.printStackTrace();
     }

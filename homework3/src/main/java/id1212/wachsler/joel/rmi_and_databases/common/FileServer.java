@@ -1,9 +1,11 @@
 package id1212.wachsler.joel.rmi_and_databases.common;
 
 import id1212.wachsler.joel.rmi_and_databases.common.dto.CredentialDTO;
+import id1212.wachsler.joel.rmi_and_databases.common.dto.FileDTO;
 import id1212.wachsler.joel.rmi_and_databases.common.exceptions.RegisterException;
 
 import javax.security.auth.login.LoginException;
+import java.io.IOException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
@@ -32,7 +34,7 @@ public interface FileServer extends Remote {
    * @throws RemoteException When something goes wrong with the communication.
    * @throws RegisterException When something goes wrong with the registration.
    */
-  void register(Listener console, CredentialDTO credentialDTO) throws RemoteException, RegisterException;
+  void register(Listener console, CredentialDTO credentialDTO) throws RemoteException, RegisterException, LoginException;
 
   /**
    * Users should be able to view their files.
@@ -47,10 +49,16 @@ public interface FileServer extends Remote {
    * Uploads the specified file.
    *
    * @param userId Id of the user who wants to upload the file.
-   * @param serverFilename The name of the file to upload.
-   * @param publicAccess If the file should be public
-   * @param readable If the file is public should it be readable by other users.
-   * @param writable If the file is public should it be writable by other users.
+   * @param fileDTO Container for file information.
    */
-  void upload(long userId, String serverFilename, boolean publicAccess, boolean readable, boolean writable) throws RemoteException, IllegalAccessException;
+  void upload(long userId, FileDTO fileDTO) throws RemoteException, IllegalAccessException;
+
+  FileDTO getFileInfo(long userId, String filename) throws RemoteException, IllegalAccessException;
+
+  void download(long userId, String filename) throws IOException, IllegalAccessException;
+
+  /**
+   * @param userId The user to logout.
+   */
+  void logout(long userId) throws RemoteException, IllegalAccessException;
 }
