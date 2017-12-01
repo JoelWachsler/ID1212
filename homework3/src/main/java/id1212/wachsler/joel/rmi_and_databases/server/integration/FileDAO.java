@@ -36,6 +36,7 @@ public class FileDAO {
       file.setOwner(client.getUser());
       file.setName(fileDTO.getFilename());
       file.setPublicAccess(fileDTO.isPublicAccess());
+      file.setSize(fileDTO.getSize());
       file.setReadable(fileDTO.isReadable());
       file.setWritable(fileDTO.isWritable());
 
@@ -49,17 +50,44 @@ public class FileDAO {
     }
   }
 
-  /**
-   * Checks if the <code>User</code> is the owner of a file with the provided filename.
-   *
-   * @param user The user to check if they're the owner.
-   * @param filename The filename to check whether the user is the owner for.
-   * @return <code>true</code> if the user is the owner of the file.
-   *         <code>false</code> if the user is not the owner of the file.
-   */
-  public boolean isFileOwner(User user, String filename) {
-    File file = getFileByName(filename);
+  public void update(FileDTO fileDTO) {
+    Session session = File.getSession();
 
-    return file.getOwner().getId() == user.getId();
+    try {
+      session.beginTransaction();
+
+      File file = getFileByName(fileDTO.getFilename());
+      file.setPublicAccess(fileDTO.isPublicAccess());
+      file.setReadable(fileDTO.isReadable());
+      file.setWritable(fileDTO.isWritable());
+      file.setSize(fileDTO.getSize());
+
+      session.save(file);
+      session.getTransaction().commit();
+    } catch (Exception e) {
+      session.getTransaction().rollback();
+      throw e;
+    } finally {
+      session.close();
+    }
+  }
+
+  public void updateFileSize(FileDTO fileDTO) {
+    Session session = File.getSession();
+
+    try {
+      session.beginTransaction();
+
+      File file = getFileByName(fileDTO.getFilename());
+      file.setSize(fileDTO.getSize());
+
+      session.save(file);
+      session.getTransaction().commit();
+    } catch (Exception e) {
+      session.getTransaction().rollback();
+      throw e;
+    } finally {
+      session.close();
+    }
   }
 }

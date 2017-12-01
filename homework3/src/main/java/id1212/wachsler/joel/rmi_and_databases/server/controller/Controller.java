@@ -57,26 +57,47 @@ public class Controller extends UnicastRemoteObject implements FileServer {
    * @see FileServer#list(long)
    */
   @Override
-  public void list(long userId) throws RemoteException, IllegalAccessException {
+  public void list(long userId) throws RemoteException {
   }
 
   /**
-   * @see FileServer#upload(long, FileDTO)
+   * Uploads the provided file.
+   *
+   * @param userId Id of the user who wants to upload the file.
+   * @param fileDTO Container for file information.
+   * @throws RemoteException If something goes wrong with the connection.
+   * @throws IllegalAccessException If the user is not allowed to upload the file.
    */
   @Override
   public void upload(long userId, FileDTO fileDTO) throws RemoteException, IllegalAccessException {
     ClientManager user = clients.get(userId);
     FileDAO fileDAO = new FileDAO();
-    File file;
 
     try {
-      file = fileDAO.getFileByName(fileDTO.getFilename());
-      fileDAO.isFileOwner(user.getUser(), fileDTO.getFilename());
+      File file = fileDAO.getFileByName(fileDTO.getFilename());
+
+      if (file.getOwner().getId() == user.getUser().getId()) {
+        fileDAO.update(fileDTO);
+        uploadFile(user, fileDTO);
+      } else if (!file.isPublicAccess()) {
+        throw new IllegalAccessException("You're not the owner and the file is not public!");
+      } else if (!file.isWritable()) {
+        throw new IllegalAccessException("You're not the owner of the file and the file is not writable!");
+      } else {
+        fileDAO.updateFileSize(fileDTO);
+        uploadFile(user, fileDTO);
+
+        String alertMsg = String.format("The user \"%s\" has updated your public writable file: \"%s\"",
+          user.getUser().getUsername(),
+          fileDTO.getFilename());
+
+        clients.get(file.getOwner().getId())
+          .alertListeners(alertMsg);
+      }
     } catch (NoResultException e) {
       // File doesn't exist and we're allowed to do whatever
       fileDAO.insert(user, fileDTO);
-      uploadFile(user.getSocketChannel(), fileDTO);
-      return;
+      uploadFile(user, fileDTO);
     }
   }
 
@@ -85,11 +106,13 @@ public class Controller extends UnicastRemoteObject implements FileServer {
     clients.remove(userId);
   }
 
-  private void uploadFile(SocketChannel socketChannel, FileDTO file) {
+  private void uploadFile(ClientManager client, FileDTO file) {
     CompletableFuture.runAsync(() -> {
       try {
         FileTransferHandler
-          .receiveFile(socketChannel, Paths.get("server_files/" + file.getFilename()), file.getSize());
+          .receiveFile(client.getSocketChannel(), Paths.get("server_files/" + file.getFilename()), file.getSize());
+
+        client.alertListeners("Your file has been uploaded!");
       } catch (IOException e) {
         e.printStackTrace();
       }

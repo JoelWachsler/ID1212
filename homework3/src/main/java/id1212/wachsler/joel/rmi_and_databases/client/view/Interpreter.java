@@ -81,7 +81,7 @@ public class Interpreter implements Runnable {
   }
 
   private void upload() throws IOException, InvalidCommandException, IllegalAccessException {
-    if (userId == 0) throw new IllegalAccessException("You must be logged in to upload!");
+    if (userId == 0) throw new IllegalAccessException("You must be authenticated in order to upload!");
 
     try {
       String localFilename = parser.getArg(0);

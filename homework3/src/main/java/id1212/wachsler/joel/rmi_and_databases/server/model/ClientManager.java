@@ -57,7 +57,7 @@ public class ClientManager {
    * @param message The message to pass to the listeners.
    * @throws RemoteException When something with the communication goes wrong.
    */
-  void alertListeners(String message) throws RemoteException {
+  public void alertListeners(String message) throws RemoteException {
     CompletableFuture.runAsync(() -> listeners.forEach(listener -> {
       try {
         listener.print(message);

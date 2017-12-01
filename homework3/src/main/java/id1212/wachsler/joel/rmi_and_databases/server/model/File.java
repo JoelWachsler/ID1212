@@ -11,7 +11,7 @@ import javax.persistence.*;
 public class File extends HibernateSession {
   private long id;
   private String name;
-  private int size;
+  private long size;
   private User owner;
   private boolean publicAccess = false;
   private boolean writable = false;
@@ -36,12 +36,12 @@ public class File extends HibernateSession {
   }
 
   @Column(nullable = false)
-  public int getSize() {
+  public long getSize() {
     return size;
   }
 
   @Column(nullable = false)
-  public void setSize(int size) {
+  public void setSize(long size) {
     this.size = size;
   }
 

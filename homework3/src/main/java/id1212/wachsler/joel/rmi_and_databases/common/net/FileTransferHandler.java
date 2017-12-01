@@ -41,8 +41,6 @@ public class FileTransferHandler {
         fileChannel.write(buffer);
         buffer.clear();
       }
-
-      System.out.println("File uploaded!");
     }
   }
 
