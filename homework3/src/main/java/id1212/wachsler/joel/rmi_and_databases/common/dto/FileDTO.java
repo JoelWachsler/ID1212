@@ -5,13 +5,15 @@ import java.io.Serializable;
 public class FileDTO implements Serializable {
   private final long owner;
   private final String filename;
+  private final long size;
   private final boolean publicAccess;
   private final boolean readable;
   private final boolean writable;
 
-  public FileDTO(long owner, String filename, boolean publicAccess, boolean readable, boolean writable) {
+  public FileDTO(long owner, String filename, long size, boolean publicAccess, boolean readable, boolean writable) {
     this.owner = owner;
     this.filename = filename;
+    this.size = size;
     this.publicAccess = publicAccess;
     this.readable = readable;
     this.writable = writable;
@@ -35,5 +37,9 @@ public class FileDTO implements Serializable {
 
   public boolean isWritable() {
     return writable;
+  }
+
+  public long getSize() {
+    return size;
   }
 }

@@ -3,6 +3,7 @@ package id1212.wachsler.joel.rmi_and_databases.client.view;
 import com.sun.javafx.binding.StringFormatter;
 import id1212.wachsler.joel.rmi_and_databases.common.*;
 import id1212.wachsler.joel.rmi_and_databases.common.dto.CredentialDTO;
+import id1212.wachsler.joel.rmi_and_databases.common.dto.FileDTO;
 import id1212.wachsler.joel.rmi_and_databases.common.dto.SocketIdentifierDTO;
 import id1212.wachsler.joel.rmi_and_databases.common.exceptions.RegisterException;
 import id1212.wachsler.joel.rmi_and_databases.common.net.FileTransferHandler;
@@ -15,6 +16,7 @@ import java.net.InetSocketAddress;
 import java.nio.channels.SocketChannel;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
@@ -64,7 +66,9 @@ public class Interpreter implements Runnable {
           case UPLOAD:    upload();   break;
           case TRACE:     console.printTrace(); break;
           case QUIT:
+            server.logout(userId);
             console.disconnect();
+            UnicastRemoteObject.unexportObject(console, true);
             running = false;
             break;
           default:
@@ -82,17 +86,21 @@ public class Interpreter implements Runnable {
     try {
       String localFilename = parser.getArg(0);
 
-      String filePath = String.format("client_files/%s", localFilename);
+      Path filePath = Paths.get(String.format("client_files/%s", localFilename));
 
-      if (!Files.exists(Paths.get(filePath)))
+      if (!Files.exists(filePath))
         throw new FileNotFoundException(String.format("The file \"%s\" does not exist!", localFilename));
+
+      long fileSize = Files.size(filePath);
 
       String serverFilename = parser.getArg(1);
       boolean publicAccess = Boolean.valueOf(parser.getArg(2));
       boolean readable = Boolean.valueOf(parser.getArg(3));
       boolean writable = Boolean.valueOf(parser.getArg(4));
 
-      server.upload(userId, serverFilename, publicAccess, readable, writable);
+      FileDTO serverFile = new FileDTO(userId, serverFilename, fileSize, publicAccess, readable, writable);
+
+      server.upload(userId, serverFile);
 
       FileTransferHandler.sendFile(socket, filePath);
     } catch (InvalidCommandException e) {
@@ -107,10 +115,11 @@ public class Interpreter implements Runnable {
     server.list(userId);
   }
 
-  private void register() throws RemoteException, RegisterException, InvalidCommandException {
+  private void register() throws IOException, RegisterException, InvalidCommandException, LoginException {
     try {
       CredentialDTO credentialDTO = createCredentials(parser);
       server.register(console, credentialDTO);
+      login();
     } catch (InvalidCommandException e) {
       throw new InvalidCommandException(
         "Invalid use of the register command!\n" +

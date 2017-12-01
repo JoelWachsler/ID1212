@@ -33,7 +33,7 @@ public interface FileServer extends Remote {
    * @throws RemoteException When something goes wrong with the communication.
    * @throws RegisterException When something goes wrong with the registration.
    */
-  long register(Listener console, CredentialDTO credentialDTO) throws RemoteException, RegisterException, LoginException;
+  void register(Listener console, CredentialDTO credentialDTO) throws RemoteException, RegisterException, LoginException;
 
   /**
    * Users should be able to view their files.
@@ -51,4 +51,9 @@ public interface FileServer extends Remote {
    * @param fileDTO Container for file information.
    */
   void upload(long userId, FileDTO fileDTO) throws RemoteException, IllegalAccessException;
+
+  /**
+   * @param userId The user to logout.
+   */
+  void logout(long userId) throws RemoteException;
 }

@@ -1,6 +1,6 @@
 package id1212.wachsler.joel.rmi_and_databases.server.model;
 
-import id1212.wachsler.joel.rmi_and_databases.server.integration.UserDAO;
+import id1212.wachsler.joel.rmi_and_databases.server.integration.HibernateSession;
 
 import javax.persistence.*;
 

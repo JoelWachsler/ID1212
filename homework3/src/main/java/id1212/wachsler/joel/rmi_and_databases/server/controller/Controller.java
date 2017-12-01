@@ -5,16 +5,20 @@ import id1212.wachsler.joel.rmi_and_databases.common.*;
 import id1212.wachsler.joel.rmi_and_databases.common.dto.CredentialDTO;
 import id1212.wachsler.joel.rmi_and_databases.common.dto.FileDTO;
 import id1212.wachsler.joel.rmi_and_databases.common.exceptions.RegisterException;
+import id1212.wachsler.joel.rmi_and_databases.common.net.FileTransferHandler;
 import id1212.wachsler.joel.rmi_and_databases.server.integration.FileDAO;
 import id1212.wachsler.joel.rmi_and_databases.server.model.ClientManager;
 import id1212.wachsler.joel.rmi_and_databases.server.model.File;
 
 import javax.persistence.NoResultException;
 import javax.security.auth.login.LoginException;
+import java.io.IOException;
 import java.nio.channels.SocketChannel;
+import java.nio.file.Paths;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -44,11 +48,9 @@ public class Controller extends UnicastRemoteObject implements FileServer {
    * @see FileServer#register(Listener, CredentialDTO)
    */
   @Override
-  public long register(Listener console, CredentialDTO credentials) throws RemoteException, RegisterException, LoginException {
+  public void register(Listener console, CredentialDTO credentials) throws RemoteException, RegisterException, LoginException {
     ClientManager client = new ClientManager();
     client.register(credentials);
-
-    return login(console, credentials);
   }
 
   /**
@@ -59,7 +61,7 @@ public class Controller extends UnicastRemoteObject implements FileServer {
   }
 
   /**
-   * @see FileServer#upload(long, String, long, boolean, boolean, boolean)
+   * @see FileServer#upload(long, FileDTO)
    */
   @Override
   public void upload(long userId, FileDTO fileDTO) throws RemoteException, IllegalAccessException {
@@ -69,13 +71,29 @@ public class Controller extends UnicastRemoteObject implements FileServer {
 
     try {
       file = fileDAO.getFileByName(fileDTO.getFilename());
+      fileDAO.isFileOwner(user.getUser(), fileDTO.getFilename());
     } catch (NoResultException e) {
       // File doesn't exist and we're allowed to do whatever
       fileDAO.insert(user, fileDTO);
+      uploadFile(user.getSocketChannel(), fileDTO);
+      return;
     }
+  }
 
+  @Override
+  public void logout(long userId) throws RemoteException {
+    clients.remove(userId);
+  }
 
-    clients.get(userId).upload();
+  private void uploadFile(SocketChannel socketChannel, FileDTO file) {
+    CompletableFuture.runAsync(() -> {
+      try {
+        FileTransferHandler
+          .receiveFile(socketChannel, Paths.get("server_files/" + file.getFilename()), file.getSize());
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    });
   }
 
   /**

@@ -1,5 +1,7 @@
 package id1212.wachsler.joel.rmi_and_databases.server.model;
 
+import id1212.wachsler.joel.rmi_and_databases.server.integration.HibernateSession;
+
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Collection;

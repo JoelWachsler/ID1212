@@ -16,7 +16,7 @@ import java.util.concurrent.CompletableFuture;
  * Handles a connected client.
  */
 public class ClientManager {
-  private final UserDAO userDAO = new UserDAO();
+  private final static UserDAO userDAO = new UserDAO();
   private User userInfo;
   private SocketChannel socketChannel;
   private List<Listener> listeners = new ArrayList<>();
@@ -74,5 +74,13 @@ public class ClientManager {
    */
   public void addListener(Listener console) {
     listeners.add(console);
+  }
+
+  public User getUser() {
+    return userInfo;
+  }
+
+  public SocketChannel getSocketChannel() {
+    return socketChannel;
   }
 }
