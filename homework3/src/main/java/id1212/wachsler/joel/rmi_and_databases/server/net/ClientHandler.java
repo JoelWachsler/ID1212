@@ -15,7 +15,6 @@ class ClientHandler {
     ObjectInputStream inputStream = new ObjectInputStream(socketChannel.socket().getInputStream());
 
     attachToUser(controller, inputStream, socketChannel);
-    // socketChannel.socket().shutdownInput();
   }
 
   private void attachToUser(Controller controller, ObjectInputStream inputStream, SocketChannel socketChannel) {

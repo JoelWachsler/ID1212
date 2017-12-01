@@ -1,5 +1,7 @@
 package id1212.wachsler.joel.rmi_and_databases.common.dto;
 
+import id1212.wachsler.joel.rmi_and_databases.server.model.File;
+
 import java.io.Serializable;
 
 public class FileDTO implements Serializable {

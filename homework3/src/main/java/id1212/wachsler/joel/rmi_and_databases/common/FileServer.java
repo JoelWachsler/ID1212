@@ -55,5 +55,5 @@ public interface FileServer extends Remote {
   /**
    * @param userId The user to logout.
    */
-  void logout(long userId) throws RemoteException;
+  void logout(long userId) throws RemoteException, IllegalAccessException;
 }

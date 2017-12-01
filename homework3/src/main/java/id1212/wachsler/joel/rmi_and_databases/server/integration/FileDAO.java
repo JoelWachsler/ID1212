@@ -3,8 +3,12 @@ package id1212.wachsler.joel.rmi_and_databases.server.integration;
 import id1212.wachsler.joel.rmi_and_databases.common.dto.FileDTO;
 import id1212.wachsler.joel.rmi_and_databases.server.model.ClientManager;
 import id1212.wachsler.joel.rmi_and_databases.server.model.File;
+import id1212.wachsler.joel.rmi_and_databases.server.model.User;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class FileDAO {
   /**
@@ -80,7 +84,7 @@ public class FileDAO {
       File file = getFileByName(fileDTO.getFilename());
       file.setSize(fileDTO.getSize());
 
-      session.save(file);
+      session.update(file);
       session.getTransaction().commit();
     } catch (Exception e) {
       session.getTransaction().rollback();
@@ -88,5 +92,15 @@ public class FileDAO {
     } finally {
       session.close();
     }
+  }
+
+  @SuppressWarnings("unchecked")
+  public List<File> getFiles(User user) {
+    Session session = File.getSession();
+
+    Query query = session.createQuery("Select file from File file where file.owner=:user or file.publicAccess = true");
+    query.setParameter("user", user);
+
+    return query.getResultList();
   }
 }

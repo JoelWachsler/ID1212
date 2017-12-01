@@ -18,6 +18,7 @@ import java.nio.file.Paths;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Map;
+import java.util.StringJoiner;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -28,6 +29,13 @@ public class Controller extends UnicastRemoteObject implements FileServer {
   private final Map<Long, ClientManager> clients = new ConcurrentHashMap<>();
 
   public Controller() throws RemoteException {
+  }
+
+  private ClientManager auth(long userId) throws IllegalAccessException {
+    if (!clients.containsKey(userId))
+      throw new IllegalAccessException("You must be logged in to do that!");
+
+    return clients.get(userId);
   }
 
   /**
@@ -57,7 +65,20 @@ public class Controller extends UnicastRemoteObject implements FileServer {
    * @see FileServer#list(long)
    */
   @Override
-  public void list(long userId) throws RemoteException {
+  public void list(long userId) throws RemoteException, IllegalAccessException {
+    ClientManager client = auth(userId);
+    FileDAO fileDAO = new FileDAO();
+
+    for (File file : fileDAO.getFiles(client.getUser())) {
+      StringJoiner msg = new StringJoiner(", ");
+      msg.add("Name: " + file.getName());
+      msg.add("Size: " + file.getSize() + " Bytes");
+      msg.add("Owner: " + file.getOwner().getUsername());
+      msg.add("Public: " + file.isPublicAccess());
+      msg.add("Read: " + file.isReadable());
+      msg.add("Writable: " + file.isWritable());
+      client.alertListeners(msg.toString());
+    }
   }
 
   /**
@@ -70,7 +91,7 @@ public class Controller extends UnicastRemoteObject implements FileServer {
    */
   @Override
   public void upload(long userId, FileDTO fileDTO) throws RemoteException, IllegalAccessException {
-    ClientManager user = clients.get(userId);
+    ClientManager user = auth(userId);
     FileDAO fileDAO = new FileDAO();
 
     try {
@@ -102,7 +123,9 @@ public class Controller extends UnicastRemoteObject implements FileServer {
   }
 
   @Override
-  public void logout(long userId) throws RemoteException {
+  public void logout(long userId) throws RemoteException, IllegalAccessException {
+    auth(userId);
+
     clients.remove(userId);
   }
 
