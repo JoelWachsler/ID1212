@@ -68,9 +68,8 @@ public class Controller extends UnicastRemoteObject implements FileServer {
   @Override
   public void list(long userId) throws RemoteException, IllegalAccessException {
     ClientManager client = auth(userId);
-    FileDAO fileDAO = new FileDAO();
 
-    for (File file : fileDAO.getFiles(client.getUser())) {
+    for (File file : client.getFileDAO().getFiles(client.getUser())) {
       StringJoiner msg = new StringJoiner(", ");
       msg.add("Name: " + file.getName());
       msg.add("Size: " + file.getSize() + " Bytes");
@@ -92,35 +91,45 @@ public class Controller extends UnicastRemoteObject implements FileServer {
    */
   @Override
   public void upload(long userId, FileDTO fileDTO) throws RemoteException, IllegalAccessException {
-    ClientManager user = auth(userId);
-    FileDAO fileDAO = new FileDAO();
+    ClientManager client = auth(userId);
+    FileDAO fileDAO = client.getFileDAO();
 
     try {
       File file = fileDAO.getFileByName(fileDTO.getFilename());
 
-      if (file.getOwner().getId() == user.getUser().getId()) {
+      if (file.getOwner().getId() == client.getUser().getId()) {
         fileDAO.update(fileDTO);
-        uploadFile(user, fileDTO);
+        uploadFile(client, fileDTO);
       } else if (!file.isPublicAccess()) {
         throw new IllegalAccessException("You're not the owner and the file is not public!");
       } else if (!file.isWritable()) {
         throw new IllegalAccessException("You're not the owner of the file and the file is not writable!");
       } else {
         fileDAO.updateFileSize(fileDTO);
-        uploadFile(user, fileDTO);
+        uploadFile(client, fileDTO);
 
         String alertMsg = String.format("The user \"%s\" has updated your public writable file: \"%s\"",
-          user.getUser().getUsername(),
+          client.getUser().getUsername(),
           fileDTO.getFilename());
 
-        clients.get(file.getOwner().getId())
-          .alertListeners(alertMsg);
+        alertOwnerFileChange(file, alertMsg);
       }
     } catch (NoResultException e) {
       // File doesn't exist and we're allowed to do whatever
-      fileDAO.insert(user, fileDTO);
-      uploadFile(user, fileDTO);
+      fileDAO.insert(client, fileDTO);
+      uploadFile(client, fileDTO);
     }
+  }
+
+  private void alertOwnerFileChange(File file, String msg) throws RemoteException {
+    long fileOwnerId = file.getOwner().getId();
+
+    // Check if the user is logged in before alerting them!
+    if (!clients.containsKey(fileOwnerId)) return;
+
+    clients
+      .get(file.getOwner().getId())
+      .alertFileUpdate(file.getId(), msg);
   }
 
   @Override
@@ -143,20 +152,25 @@ public class Controller extends UnicastRemoteObject implements FileServer {
 
   @Override
   public void download(long userId, String filename) throws IOException, IllegalAccessException {
-    ClientManager user = auth(userId);
-    FileDAO fileDAO = new FileDAO();
+    ClientManager client = auth(userId);
 
-    File file = fileDAO.getFileByName(filename);
+    File file = client.getFileDAO().getFileByName(filename);
     Path serverFilePath = Paths.get("server_files/" + filename);
 
-    if (file.getOwner().getId() == user.getUser().getId()) {
-      FileTransferHandler.sendFile(user.getSocketChannel(), serverFilePath);
+    if (file.getOwner().getId() == client.getUser().getId()) {
+      FileTransferHandler.sendFile(client.getSocketChannel(), serverFilePath);
     } else if (!file.isPublicAccess()) {
       throw new IllegalAccessException("You're not the owner and the file is not public!");
     } else if (!file.isReadable()) {
       throw new IllegalAccessException("You're not the owner of the file and the file is not readable!");
     } else {
-      FileTransferHandler.sendFile(user.getSocketChannel(), serverFilePath);
+      FileTransferHandler.sendFile(client.getSocketChannel(), serverFilePath);
+
+      String alertMsg = String.format("The user \"%s\" has downloaded your public readable file: \"%s\"",
+        client.getUser().getUsername(),
+        filename);
+
+      alertOwnerFileChange(file, alertMsg);
     }
   }
 
@@ -180,13 +194,31 @@ public class Controller extends UnicastRemoteObject implements FileServer {
     logout(userId);
   }
 
+  /**
+   * Request to be notified when the file gets updated.
+   *
+   * @param userId               The file owner who wants to be notified.
+   * @param fileToNotifyOnUpdate The file to be notified on.
+   * @throws RemoteException When something goes wrong with the connection.
+   */
+  @Override
+  public void notifyFileUpdate(long userId, String fileToNotifyOnUpdate) throws RemoteException, IllegalAccessException {
+    ClientManager client = auth(userId);
+    File file = client.getFileDAO().getFileByName(fileToNotifyOnUpdate);
+
+    if (file.getOwner().getId() != client.getUser().getId())
+      throw new IllegalAccessException("You are not the owner of that file!");
+
+    client.addFileToBeUpdatedOn(file.getId());
+  }
+
   private void uploadFile(ClientManager client, FileDTO file) {
     CompletableFuture.runAsync(() -> {
       try {
         FileTransferHandler
           .receiveFile(client.getSocketChannel(), Paths.get("server_files/" + file.getFilename()), file.getSize());
 
-        client.alertListeners("Your file has been uploaded!");
+        client.alertListeners(String.format("The file \"%s\" has been uploaded!", file.getFilename()));
       } catch (IOException e) {
         e.printStackTrace();
       }

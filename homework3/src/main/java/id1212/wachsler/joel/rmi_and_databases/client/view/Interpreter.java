@@ -62,8 +62,7 @@ public class Interpreter implements Runnable {
           case UPLOAD:     upload();     break;
           case DOWNLOAD:   download();   break;
           case UNREGISTER: unregister(); break;
-          case NOTIFY:
-            break;
+          case NOTIFY:     notifyFile(); break;
           case TRACE:      console.printTrace(); break;
           case QUIT:
             server.logout(userId);
@@ -77,6 +76,17 @@ public class Interpreter implements Runnable {
       } catch (Exception e) {
         console.error(e.getMessage(), e);
       }
+    }
+  }
+
+  private void notifyFile() throws InvalidCommandException, RemoteException, IllegalAccessException {
+    try {
+      String fileToNotifyOnUpdate = parser.getArg(0);
+      server.notifyFileUpdate(userId, fileToNotifyOnUpdate);
+    } catch (InvalidCommandException e) {
+      throw new InvalidCommandException("Invalid use of the notify command!\n" +
+        "The correct way is:\n" +
+        "notify <remote filename:string>");
     }
   }
 
@@ -98,7 +108,7 @@ public class Interpreter implements Runnable {
     } catch (InvalidCommandException e) {
       throw new InvalidCommandException(
         "Invalid use of the download command!\n" +
-          "the correct way is:\n" +
+          "The correct way is:\n" +
           "download <server filename:string>");
     }
   }
@@ -127,7 +137,7 @@ public class Interpreter implements Runnable {
     } catch (InvalidCommandException e) {
       throw new InvalidCommandException(
         "Invalid use of the upload command!\n" +
-          "the correct way is:\n" +
+          "The correct way is:\n" +
           "upload <local filename:string> <upload filename:string> <public:boolean> <read:boolean> <write:boolean>");
     }
   }
@@ -144,7 +154,7 @@ public class Interpreter implements Runnable {
     } catch (InvalidCommandException e) {
       throw new InvalidCommandException(
         "Invalid use of the register command!\n" +
-          "the correct way is:\n" +
+          "The correct way is:\n" +
           "register <username:string> <password:string>");
     }
   }

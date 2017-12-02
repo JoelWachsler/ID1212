@@ -24,7 +24,7 @@ public class File extends HibernateSession {
   @Column(nullable = false)
   private boolean readable = false;
 
-  public long getId() {
+  public Long getId() {
     return id;
   }
 

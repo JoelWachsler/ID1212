@@ -68,4 +68,13 @@ public interface FileServer extends Remote {
    * @param userId The user to unregister.
    */
   void unregister(long userId) throws IOException, IllegalAccessException;
+
+  /**
+   * Request to be notified when the file gets updated.
+   *
+   * @param userId The file owner who wants to be notified.
+   * @param fileToNotifyOnUpdate The file to be notified on.
+   * @throws RemoteException When something goes wrong with the connection.
+   */
+  void notifyFileUpdate(long userId, String fileToNotifyOnUpdate) throws RemoteException, IllegalAccessException;
 }
