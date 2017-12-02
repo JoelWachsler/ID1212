@@ -78,4 +78,18 @@ public class UserDAO {
       throw new LoginException("Wrong username or password!");
     }
   }
+
+  public void remove(User userInfo) {
+    Session session = User.getSession();
+    try {
+      session.beginTransaction();
+      session.delete(userInfo);
+      session.getTransaction().commit();
+    } catch (Exception e) {
+      session.getTransaction().rollback();
+      throw e;
+    } finally {
+      session.close();
+    }
+  }
 }

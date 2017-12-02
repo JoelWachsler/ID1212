@@ -29,6 +29,14 @@ public enum Command {
    */
   QUIT,
   /**
+   * Unregister the user.
+   */
+  UNREGISTER,
+  /**
+   * Notifies the user when a public file is read or written to.
+   */
+  NOTIFY,
+  /**
    * Prints the last stacktrace
    */
   TRACE,

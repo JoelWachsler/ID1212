@@ -3,9 +3,11 @@ package id1212.wachsler.joel.rmi_and_databases.server.model;
 import id1212.wachsler.joel.rmi_and_databases.common.Listener;
 import id1212.wachsler.joel.rmi_and_databases.common.dto.CredentialDTO;
 import id1212.wachsler.joel.rmi_and_databases.common.exceptions.RegisterException;
+import id1212.wachsler.joel.rmi_and_databases.server.integration.FileDAO;
 import id1212.wachsler.joel.rmi_and_databases.server.integration.UserDAO;
 
 import javax.security.auth.login.LoginException;
+import java.io.IOException;
 import java.nio.channels.SocketChannel;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
@@ -17,9 +19,11 @@ import java.util.concurrent.CompletableFuture;
  */
 public class ClientManager {
   private final static UserDAO userDAO = new UserDAO();
+  private static FileDAO fileDAO = new FileDAO();
   private User userInfo;
   private SocketChannel socketChannel;
   private List<Listener> listeners = new ArrayList<>();
+  private List<Long> filesToBeAlertedOn = new ArrayList<>();
 
   /**
    * @see UserDAO#login(CredentialDTO)
@@ -82,5 +86,36 @@ public class ClientManager {
 
   public SocketChannel getSocketChannel() {
     return socketChannel;
+  }
+
+  /**
+   * Removes the current user.
+   */
+  public void remove() throws RemoteException {
+    userDAO.remove(userInfo);
+    alertListeners("You are now unregistered!");
+  }
+
+  public void logout() throws IOException {
+    userInfo = null;
+    socketChannel.socket().close();
+    listeners.clear();
+    listeners = null;
+  }
+
+  public FileDAO getFileDAO() {
+    return fileDAO;
+  }
+
+  public void addFileToBeUpdatedOn(long fileId) throws RemoteException {
+    filesToBeAlertedOn.add(fileId);
+
+    alertListeners("You will now be alerted on any update for that file!");
+  }
+
+  public void alertFileUpdate(long fileId, String alertMsg) throws RemoteException {
+    if (!filesToBeAlertedOn.contains(fileId)) return;
+
+    alertListeners(alertMsg);
   }
 }
