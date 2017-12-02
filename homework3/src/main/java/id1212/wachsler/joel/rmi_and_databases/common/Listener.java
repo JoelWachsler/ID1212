@@ -17,10 +17,5 @@ public interface Listener extends Remote {
    * @param e   <code>Exception</code> which contains information of what went wrong.
    */
   void error(String msg, Exception e) throws RemoteException;
-
-  /**
-   * Information about a disconnection.
-   */
-  void disconnect() throws RemoteException;
 }
 

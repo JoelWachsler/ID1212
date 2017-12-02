@@ -56,17 +56,20 @@ public class Interpreter implements Runnable {
         parser = new CmdLineParser(console.readNextLine());
 
         switch (parser.getCmd()) {
-          case LOGIN:     login();    break;
-          case REGISTER:  register(); break;
-          case LIST:      list();     break;
-          case UPLOAD:    upload();   break;
-          case DOWNLOAD:  download(); break;
-          case TRACE:     console.printTrace(); break;
+          case LOGIN:      login();      break;
+          case REGISTER:   register();   break;
+          case LIST:       list();       break;
+          case UPLOAD:     upload();     break;
+          case DOWNLOAD:   download();   break;
+          case UNREGISTER: unregister(); break;
+          case NOTIFY:
+            break;
+          case TRACE:      console.printTrace(); break;
           case QUIT:
             server.logout(userId);
-            console.disconnect();
             UnicastRemoteObject.unexportObject(console, true);
             running = false;
+            console.print("You are now disconnected!");
             break;
           default:
             throw new InvalidCommandException("The provided command does not exist!");
@@ -75,6 +78,11 @@ public class Interpreter implements Runnable {
         console.error(e.getMessage(), e);
       }
     }
+  }
+
+  private void unregister() throws RemoteException, IllegalAccessException {
+    server.unregister(userId);
+    userId = 0;
   }
 
   private void download() throws IOException, IllegalAccessException, InvalidCommandException {
@@ -194,11 +202,6 @@ public class Interpreter implements Runnable {
 
       outMsg.println("ERROR:");
       outMsg.println(error);
-    }
-
-    @Override
-    public void disconnect() throws RemoteException {
-      print("You are now disconnected!");
     }
 
     String readNextLine() throws RemoteException {

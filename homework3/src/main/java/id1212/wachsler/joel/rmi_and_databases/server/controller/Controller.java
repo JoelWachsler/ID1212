@@ -167,6 +167,18 @@ public class Controller extends UnicastRemoteObject implements FileServer {
     clients.remove(userId);
   }
 
+  /**
+   * Removes a user.
+   *
+   * @param userId The user to unregister.
+   */
+  @Override
+  public void unregister(long userId) throws RemoteException, IllegalAccessException {
+    ClientManager client = auth(userId);
+    client.remove();
+    logout(userId);
+  }
+
   private void uploadFile(ClientManager client, FileDTO file) {
     CompletableFuture.runAsync(() -> {
       try {

@@ -83,4 +83,12 @@ public class ClientManager {
   public SocketChannel getSocketChannel() {
     return socketChannel;
   }
+
+  /**
+   * Removes the current user.
+   */
+  public void remove() throws RemoteException {
+    userDAO.remove(userInfo);
+    alertListeners("You are now unregistered!");
+  }
 }
