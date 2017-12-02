@@ -51,9 +51,9 @@ class CmdLineParser {
    * @param i The index of the argument
    * @return The argument or null if it doesn't exist
    */
-  String getArg(int i) throws InvalidCommandException {
+  String getArg(int i) throws InvalidCommandUsageException {
     if (params == null) return null;
-    if (params.length <= i || params.length == 0) throw new InvalidCommandException("Command misuse!");
+    if (params.length <= i || params.length == 0) throw new InvalidCommandUsageException("Command misuse!");
 
     return params[i];
   }

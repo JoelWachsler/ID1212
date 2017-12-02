@@ -6,7 +6,6 @@ import id1212.wachsler.joel.rmi_and_databases.common.dto.FileDTO;
 import id1212.wachsler.joel.rmi_and_databases.common.dto.SocketIdentifierDTO;
 import id1212.wachsler.joel.rmi_and_databases.common.exceptions.RegisterException;
 import id1212.wachsler.joel.rmi_and_databases.common.net.FileTransferHandler;
-import id1212.wachsler.joel.rmi_and_databases.server.integration.FileDAO;
 
 import javax.security.auth.login.LoginException;
 import java.io.FileNotFoundException;
@@ -21,6 +20,7 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Scanner;
 import java.util.Stack;
+import java.util.StringJoiner;
 
 public class Interpreter implements Runnable {
   private FileServer server;
@@ -53,7 +53,22 @@ public class Interpreter implements Runnable {
   public void run() {
     while (running) {
       try {
-        parser = new CmdLineParser(console.readNextLine());
+        try {
+          parser = new CmdLineParser(console.readNextLine());
+        } catch (InvalidCommandException e) {
+          StringJoiner joiner = new StringJoiner("\n");
+          joiner.add(e.getMessage());
+          joiner.add("");
+          joiner.add("The available commands are:");
+          joiner.add("");
+
+          for (Command cmd : Command.values())
+            joiner.add(cmdUsage(cmd));
+
+          joiner.add("");
+
+          throw new InvalidCommandException(joiner.toString());
+        }
 
         switch (parser.getCmd()) {
           case LOGIN:      login();      break;
@@ -70,23 +85,41 @@ public class Interpreter implements Runnable {
             running = false;
             console.print("You are now disconnected!");
             break;
-          default:
-            throw new InvalidCommandException("The provided command does not exist!");
         }
+      } catch (InvalidCommandUsageException e) {
+        StringJoiner errorMsg = new StringJoiner("\n");
+        errorMsg.add(String.format("Invalid use of the %s command!", e.getMessage()));
+        errorMsg.add("The correct way is:");
+        errorMsg.add(cmdUsage(Command.valueOf(e.getMessage())));
+        console.error(errorMsg.toString(), e);
       } catch (Exception e) {
         console.error(e.getMessage(), e);
       }
     }
   }
 
-  private void notifyFile() throws InvalidCommandException, RemoteException, IllegalAccessException {
+  private String cmdUsage(Command cmd) {
+    switch (cmd) {
+      case LOGIN:     return "login <username:string> <password:string>";
+      case REGISTER:  return "register <username:string> <password:string>";
+      case LIST:      return "list";
+      case DOWNLOAD:  return "download <server filename:string>";
+      case UPLOAD:    return "upload <local filename:string> <upload filename:string> " +
+                             "<public:boolean> <read:boolean> <write:boolean>";
+      case QUIT:      return "quit";
+      case UNREGISTER:return "unregister";
+      case NOTIFY:    return "notify <remote filename:string>";
+      case TRACE:     return "trace";
+      default:        return "That command doesn't exist!";
+    }
+  }
+
+  private void notifyFile() throws RemoteException, IllegalAccessException, InvalidCommandUsageException {
     try {
       String fileToNotifyOnUpdate = parser.getArg(0);
       server.notifyFileUpdate(userId, fileToNotifyOnUpdate);
-    } catch (InvalidCommandException e) {
-      throw new InvalidCommandException("Invalid use of the notify command!\n" +
-        "The correct way is:\n" +
-        "notify <remote filename:string>");
+    } catch (InvalidCommandUsageException e) {
+      throw new InvalidCommandUsageException(Command.NOTIFY.toString());
     }
   }
 
@@ -95,7 +128,7 @@ public class Interpreter implements Runnable {
     userId = 0;
   }
 
-  private void download() throws IOException, IllegalAccessException, InvalidCommandException {
+  private void download() throws IOException, IllegalAccessException, InvalidCommandUsageException {
     try {
       String filename = parser.getArg(0);
 
@@ -105,15 +138,12 @@ public class Interpreter implements Runnable {
       Path savePath = Paths.get("client_files/" + filename);
       FileTransferHandler.receiveFile(socket, savePath, serverFileInfo.getSize());
       console.print("File downloaded!");
-    } catch (InvalidCommandException e) {
-      throw new InvalidCommandException(
-        "Invalid use of the download command!\n" +
-          "The correct way is:\n" +
-          "download <server filename:string>");
+    } catch (InvalidCommandUsageException e) {
+      throw new InvalidCommandUsageException(Command.DOWNLOAD.toString());
     }
   }
 
-  private void upload() throws IOException, InvalidCommandException, IllegalAccessException {
+  private void upload() throws IOException, InvalidCommandException, IllegalAccessException, InvalidCommandUsageException {
     try {
       String localFilename = parser.getArg(0);
 
@@ -134,11 +164,8 @@ public class Interpreter implements Runnable {
       server.upload(userId, serverFile);
 
       FileTransferHandler.sendFile(socket, filePath);
-    } catch (InvalidCommandException e) {
-      throw new InvalidCommandException(
-        "Invalid use of the upload command!\n" +
-          "The correct way is:\n" +
-          "upload <local filename:string> <upload filename:string> <public:boolean> <read:boolean> <write:boolean>");
+    } catch (InvalidCommandUsageException e) {
+      throw new InvalidCommandUsageException(Command.UPLOAD.toString());
     }
   }
 
@@ -146,29 +173,23 @@ public class Interpreter implements Runnable {
     server.list(userId);
   }
 
-  private void register() throws IOException, RegisterException, InvalidCommandException, LoginException {
+  private void register() throws IOException, RegisterException, LoginException, InvalidCommandUsageException {
     try {
       CredentialDTO credentialDTO = createCredentials(parser);
       server.register(console, credentialDTO);
       login();
-    } catch (InvalidCommandException e) {
-      throw new InvalidCommandException(
-        "Invalid use of the register command!\n" +
-          "The correct way is:\n" +
-          "register <username:string> <password:string>");
+    } catch (InvalidCommandUsageException e) {
+      throw new InvalidCommandUsageException(Command.REGISTER.toString());
     }
   }
 
-  private void login() throws IOException, LoginException, InvalidCommandException {
+  private void login() throws IOException, LoginException, InvalidCommandUsageException {
     try {
       userId = server.login(console, createCredentials(parser));
 
       createServerSocket(userId);
-    } catch (InvalidCommandException e) {
-      throw new InvalidCommandException(
-        "Invalid use of the login command!\n" +
-          "The correct way is:\n" +
-          "login <username> <password>");
+    } catch (InvalidCommandUsageException e) {
+      throw new InvalidCommandUsageException(Command.LOGIN.toString());
     }
   }
 
@@ -184,7 +205,7 @@ public class Interpreter implements Runnable {
     output.flush();
   }
 
-  private CredentialDTO createCredentials(CmdLineParser parser) throws InvalidCommandException {
+  private CredentialDTO createCredentials(CmdLineParser parser) throws InvalidCommandUsageException {
     String username = parser.getArg(0);
     String password = parser.getArg(1);
 
@@ -202,7 +223,7 @@ public class Interpreter implements Runnable {
 
     @Override
     public void print(String msg) throws RemoteException {
-      outMsg.println("\r" + msg);
+      outMsg.println("\n" + msg);
       outMsg.print(PROMPT);
     }
 
@@ -210,7 +231,7 @@ public class Interpreter implements Runnable {
     public void error(String error, Exception e) {
       exceptionList.push(e);
 
-      outMsg.println("ERROR:");
+      outMsg.println("\nERROR:\n");
       outMsg.println(error);
     }
 
