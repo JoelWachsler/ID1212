@@ -9,15 +9,21 @@ import javax.persistence.*;
  */
 @Entity(name = "File")
 public class File extends HibernateSession {
+  @Id @GeneratedValue(strategy = GenerationType.AUTO)
   private long id;
+  @Column(unique = true, nullable = false)
   private String name;
+  @Column(nullable = false)
   private long size;
+  @ManyToOne(optional = false)
   private User owner;
+  @Column(nullable = false)
   private boolean publicAccess = false;
+  @Column(nullable = false)
   private boolean writable = false;
+  @Column(nullable = false)
   private boolean readable = false;
 
-  @Id @GeneratedValue(strategy = GenerationType.AUTO)
   public long getId() {
     return id;
   }
@@ -26,7 +32,6 @@ public class File extends HibernateSession {
     this.id = id;
   }
 
-  @Column(unique = true, nullable = false)
   public String getName() {
     return name;
   }
@@ -35,12 +40,10 @@ public class File extends HibernateSession {
     this.name = name;
   }
 
-  @Column(nullable = false)
   public long getSize() {
     return size;
   }
 
-  @Column(nullable = false)
   public void setSize(long size) {
     this.size = size;
   }
@@ -69,7 +72,6 @@ public class File extends HibernateSession {
     this.readable = read;
   }
 
-  @ManyToOne(optional = false)
   public User getOwner() {
     return owner;
   }

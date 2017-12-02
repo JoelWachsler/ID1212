@@ -161,8 +161,9 @@ public class Controller extends UnicastRemoteObject implements FileServer {
   }
 
   @Override
-  public void logout(long userId) throws RemoteException, IllegalAccessException {
-    auth(userId);
+  public void logout(long userId) throws IOException, IllegalAccessException {
+    ClientManager client = auth(userId);
+    client.logout();
 
     clients.remove(userId);
   }
@@ -173,7 +174,7 @@ public class Controller extends UnicastRemoteObject implements FileServer {
    * @param userId The user to unregister.
    */
   @Override
-  public void unregister(long userId) throws RemoteException, IllegalAccessException {
+  public void unregister(long userId) throws IOException, IllegalAccessException {
     ClientManager client = auth(userId);
     client.remove();
     logout(userId);

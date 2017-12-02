@@ -6,6 +6,7 @@ import id1212.wachsler.joel.rmi_and_databases.common.exceptions.RegisterExceptio
 import id1212.wachsler.joel.rmi_and_databases.server.integration.UserDAO;
 
 import javax.security.auth.login.LoginException;
+import java.io.IOException;
 import java.nio.channels.SocketChannel;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
@@ -90,5 +91,12 @@ public class ClientManager {
   public void remove() throws RemoteException {
     userDAO.remove(userInfo);
     alertListeners("You are now unregistered!");
+  }
+
+  public void logout() throws IOException {
+    userInfo = null;
+    socketChannel.socket().close();
+    listeners.clear();
+    listeners = null;
   }
 }

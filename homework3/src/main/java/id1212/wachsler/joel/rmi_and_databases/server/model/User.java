@@ -1,6 +1,7 @@
 package id1212.wachsler.joel.rmi_and_databases.server.model;
 
 import id1212.wachsler.joel.rmi_and_databases.server.integration.HibernateSession;
+import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -18,7 +19,7 @@ public class User extends HibernateSession {
   private String username;
   @Column(nullable = false)
   private String password;
-  @OneToMany(mappedBy = "owner")
+  @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL)
   private Collection<File> files = new ArrayList<>();
 
   public long getId() {

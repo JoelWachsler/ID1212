@@ -80,7 +80,7 @@ public class Interpreter implements Runnable {
     }
   }
 
-  private void unregister() throws RemoteException, IllegalAccessException {
+  private void unregister() throws IOException, IllegalAccessException {
     server.unregister(userId);
     userId = 0;
   }
