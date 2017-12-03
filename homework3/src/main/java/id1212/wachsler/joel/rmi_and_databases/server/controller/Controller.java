@@ -212,6 +212,25 @@ public class Controller extends UnicastRemoteObject implements FileServer {
     client.addFileToBeUpdatedOn(file.getId());
   }
 
+  /**
+   * Deletes a file on the server.
+   *
+   * @param userId   The user who wants to delete the file.
+   * @param filename The file to delete.
+   */
+  @Override
+  public void delete(long userId, String filename) throws RemoteException, IllegalAccessException {
+    ClientManager client = auth(userId);
+
+    File file = client.getFileDAO().getFileByName(filename);
+
+    if (file.getOwner().getId() != client.getUser().getId())
+      throw new IllegalAccessException("Only the owner can delete that file!");
+
+    client.getFileDAO().deleteFile(file);
+    client.alertListeners(String.format("The file \"%s\" has been deleted.", filename));
+  }
+
   private void uploadFile(ClientManager client, FileDTO file) {
     CompletableFuture.runAsync(() -> {
       try {
