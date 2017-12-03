@@ -103,4 +103,19 @@ public class FileDAO {
 
     return query.getResultList();
   }
+
+  public void deleteFile(File file) {
+    Session session = File.getSession();
+
+    try {
+      session.beginTransaction();
+      session.delete(file);
+      session.getTransaction().commit();
+    } catch (Exception e) {
+      session.getTransaction().rollback();
+      throw e;
+    } finally {
+      session.close();
+    }
+  }
 }

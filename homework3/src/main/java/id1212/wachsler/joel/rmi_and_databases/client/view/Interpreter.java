@@ -76,6 +76,7 @@ public class Interpreter implements Runnable {
           case LIST:       list();       break;
           case UPLOAD:     upload();     break;
           case DOWNLOAD:   download();   break;
+          case DELETE:     delete();     break;
           case UNREGISTER: unregister(); break;
           case NOTIFY:     notifyFile(); break;
           case TRACE:      console.printTrace(); break;
@@ -107,6 +108,7 @@ public class Interpreter implements Runnable {
       case UPLOAD:    return "upload <local filename:string> <upload filename:string> " +
                              "<public:boolean> <read:boolean> <write:boolean>";
       case QUIT:      return "quit";
+      case DELETE:    return "delete <filename:string>";
       case UNREGISTER:return "unregister";
       case NOTIFY:    return "notify <remote filename:string>";
       case TRACE:     return "trace";
@@ -166,6 +168,16 @@ public class Interpreter implements Runnable {
       FileTransferHandler.sendFile(socket, filePath);
     } catch (InvalidCommandUsageException e) {
       throw new InvalidCommandUsageException(Command.UPLOAD.toString());
+    }
+  }
+
+  private void delete() throws InvalidCommandUsageException, RemoteException, IllegalAccessException {
+    try {
+      String filename = parser.getArg(0);
+
+      server.delete(userId, filename);
+    } catch (InvalidCommandUsageException e) {
+      throw new InvalidCommandUsageException(Command.DELETE.toString());
     }
   }
 

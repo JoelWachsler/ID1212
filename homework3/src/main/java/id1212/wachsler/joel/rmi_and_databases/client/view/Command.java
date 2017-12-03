@@ -29,6 +29,10 @@ public enum Command {
    */
   QUIT,
   /**
+   * Deletes a file.
+   */
+  DELETE,
+  /**
    * Unregister the user.
    */
   UNREGISTER,

@@ -92,8 +92,8 @@ public class ClientManager {
    * Removes the current user.
    */
   public void remove() throws RemoteException {
-    userDAO.remove(userInfo);
     alertListeners("You are now unregistered!");
+    userDAO.remove(userInfo);
   }
 
   public void logout() throws IOException {

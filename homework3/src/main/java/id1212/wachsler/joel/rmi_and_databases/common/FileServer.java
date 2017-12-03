@@ -77,4 +77,12 @@ public interface FileServer extends Remote {
    * @throws RemoteException When something goes wrong with the connection.
    */
   void notifyFileUpdate(long userId, String fileToNotifyOnUpdate) throws RemoteException, IllegalAccessException;
+
+  /**
+   * Deletes a file on the server.
+   *
+   * @param userId The user who wants to delete the file.
+   * @param filename The file to delete.
+   */
+  void delete(long userId, String filename) throws RemoteException, IllegalAccessException;
 }
