@@ -7,7 +7,7 @@ import javax.enterprise.context.SessionScoped;
 import javax.inject.Named;
 import java.io.Serializable;
 
-@Named(value = "adder")
+@Named("adder")
 @SessionScoped
 public class Adder implements Serializable {
   @EJB
