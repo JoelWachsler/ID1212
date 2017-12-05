@@ -6,11 +6,12 @@ import javax.ejb.Stateful;
 public class AdderBean {
   private int total;
 
-  public void add(int numberToAdd) {
-    total += numberToAdd;
+  public void add(int operand) {
+    total = total + operand;
   }
 
   public int getTotal() {
     return total;
   }
+
 }

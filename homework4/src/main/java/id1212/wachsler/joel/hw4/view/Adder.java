@@ -3,7 +3,7 @@ package id1212.wachsler.joel.hw4.view;
 import id1212.wachsler.joel.hw4.model.AdderBean;
 
 import javax.ejb.EJB;
-import javax.faces.bean.SessionScoped;
+import javax.enterprise.context.SessionScoped;
 import javax.inject.Named;
 import java.io.Serializable;
 
