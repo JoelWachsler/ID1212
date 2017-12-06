@@ -3,6 +3,13 @@ package id1212.wachsler.joel.hw4.model;
 import javax.persistence.*;
 import java.io.Serializable;
 
+@NamedQueries({
+  @NamedQuery(
+    name = "getRateFromCurrencies",
+    query = "SELECT rate FROM Rate rate WHERE rate.from=:fromCurr AND rate.to=:toCurr"
+  )
+})
+
 @Entity(name = "Rate")
 public class Rate implements RateDTO, Serializable {
   @Id @ManyToOne
