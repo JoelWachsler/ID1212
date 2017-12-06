@@ -5,8 +5,6 @@ import id1212.wachsler.joel.hw4.model.CurrencyDTO;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
-import javax.ejb.TransactionAttribute;
-import javax.ejb.TransactionAttributeType;
 import java.util.List;
 
 @Stateless

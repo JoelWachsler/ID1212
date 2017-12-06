@@ -5,16 +5,18 @@
              version="2.2">
   <persistence-unit name="HibernatePU">
     <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+    <shared-cache-mode>ALL</shared-cache-mode>
+    <validation-mode>AUTO</validation-mode>
+
     <properties>
-      <property name="hibernate.archive.autodetection" value="class" />
-      <property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQL95Dialect" />
-      <property name="hibernate.connection.driver_class" value="org.postgresql.Driver" />
-      <property name="hibernate.connection.url" value="jdbc:postgresql://localhost:5432/conversionDb" />
-      <property name="hibernate.connection.username" value="postgres" />
-      <property name="hibernate.connection.password" value="test" />
+      <property name="hibernate.dialect" value="org.hibernate.dialect.MySQL57Dialect" />
+      <property name="hibernate.connection.driver" value="com.mysql.jdbc.Driver" />
+      <property name="hibernate.connection.url" value="jdbc:mysql://localhost:3306/conversion_db" />
+      <property name="hibernate.connection.username" value="root" />
+      <property name="hibernate.connection.password" value="" />
       <!-- <property name="hibernate.show_sql" value="true"/> -->
-      <property name="hibernate.flushMode" value="FLUSH_AUTO" />
-      <property name="hibernate.hbm2ddl.auto" value="create" />
+      <property name="hibernate.hbm2ddl.auto" value="create-drop" />
+      <property name="hibernate.transaction.jta.platform" value="org.hibernate.service.jta.platform.internal.SunOneJtaPlatform" />
     </properties>
   </persistence-unit>
 </persistence>
