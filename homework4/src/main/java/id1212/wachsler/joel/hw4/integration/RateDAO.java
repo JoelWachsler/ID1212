@@ -8,11 +8,22 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 
+/**
+ * Rate Data Access Object.
+ * Handles various data access operations regarding rate.
+ */
 @Stateless
 public class RateDAO {
   @PersistenceContext(unitName = "HibernatePU")
   private EntityManager em;
 
+  /**
+   * Finds the conversion rate between
+   *
+   * @param from Rate from this currency.
+   * @param to Rate to this currency.
+   * @return The rate between the two currencies.
+   */
   public Rate getRate(Currency from, Currency to) {
     try {
       return em.createNamedQuery("getRateFromCurrencies", Rate.class)
