@@ -1,6 +1,6 @@
 package id1212.wachsler.joel.hw4.view;
 
-import id1212.wachsler.joel.hw4.controller.CurrencyFacade;
+import id1212.wachsler.joel.hw4.controller.CurrencyController;
 import id1212.wachsler.joel.hw4.model.CurrencyDTO;
 
 import javax.ejb.EJB;
@@ -9,16 +9,22 @@ import javax.inject.Named;
 import java.io.Serializable;
 import java.util.List;
 
+/**
+ * Methods callable from the JSF view.
+ */
 @Named("conversionManager")
 @ConversationScoped
 public class ConversionManager implements Serializable {
   @EJB
-  private CurrencyFacade currencyFacade;
+  private CurrencyController currencyFacade;
   private float amntToConvert = 0;
   private float amntConverted = 0;
   private long fromId = 1;
   private long toId = 1;
 
+  /**
+   * @return All currencies as a <code>List</code>.
+   */
   public List<? extends CurrencyDTO> getCurrencies() {
     return currencyFacade.getCurrencies();
   }
@@ -27,11 +33,11 @@ public class ConversionManager implements Serializable {
     amntConverted = currencyFacade.convert(fromId, toId, amntToConvert);
   }
 
-  public CurrencyFacade getCurrencyFacade() {
+  public CurrencyController getCurrencyFacade() {
     return currencyFacade;
   }
 
-  public void setCurrencyFacade(CurrencyFacade currencyFacade) {
+  public void setCurrencyFacade(CurrencyController currencyFacade) {
     this.currencyFacade = currencyFacade;
   }
 

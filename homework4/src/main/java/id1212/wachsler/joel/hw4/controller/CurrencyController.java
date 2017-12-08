@@ -9,8 +9,11 @@ import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import java.util.List;
 
+/**
+ * Handles communication with the currency models.
+ */
 @Stateless
-public class CurrencyFacade {
+public class CurrencyController {
   @EJB
   CurrencyDAO currencyDAO;
   @EJB
@@ -20,6 +23,15 @@ public class CurrencyFacade {
     return currencyDAO.getCurrencies();
   }
 
+  /**
+   * Converts <code>amntToConvert</code> which is of the currency type corresponding to <code>fromId</code> to
+   * the currency corresponding to <code>toId</code>.
+   *
+   * @param fromId The id of the currency <code>amntToConvert</code> is in.
+   * @param toId The id of the currency to convert to.
+   * @param amntToConvert The amount to convert.
+   * @return The converted amount.
+   */
   public float convert(long fromId, long toId, float amntToConvert) {
     Currency from = currencyDAO.findCurrencyById(fromId);
     Currency to = currencyDAO.findCurrencyById(toId);
