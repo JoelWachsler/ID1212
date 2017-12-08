@@ -7,17 +7,18 @@ import id1212.wachsler.joel.hw4.model.CurrencyDTO;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
 import java.util.List;
 
 /**
  * Handles communication with the currency models.
  */
+@TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
 @Stateless
 public class CurrencyController {
-  @EJB
-  CurrencyDAO currencyDAO;
-  @EJB
-  RateDAO rateDAO;
+  @EJB CurrencyDAO currencyDAO;
+  @EJB RateDAO rateDAO;
 
   public List<? extends CurrencyDTO> getCurrencies() {
     return currencyDAO.getCurrencies();

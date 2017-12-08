@@ -4,7 +4,7 @@
       xmlns:h="http://java.sun.com/jsf/html"
       xmlns:f="http://xmlns.jcp.org/jsf/core">
   <h:head>
-    <title>Conversion site</title>
+    <title>Currency conversion site</title>
   </h:head>
   <h:body>
     <h1>Convert currencies</h1>
@@ -36,7 +36,7 @@
         <h:outputLabel for="convert_res" value="Is converted to" />
       </p>
       <p>
-        <h:inputText id="convert_res" value="#{conversionManager.amntConverted}" />
+        <h:inputText id="convert_res" value="#{conversionManager.amntConverted}" disabled="true" />
       </p>
 
       <p>
