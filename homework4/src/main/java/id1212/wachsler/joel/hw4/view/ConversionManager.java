@@ -5,6 +5,7 @@ import id1212.wachsler.joel.hw4.model.CurrencyDTO;
 
 import javax.ejb.EJB;
 import javax.enterprise.context.ConversationScoped;
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Named;
 import java.io.Serializable;
 import java.util.List;
@@ -13,7 +14,7 @@ import java.util.List;
  * Methods callable from the JSF view.
  */
 @Named("conversionManager")
-@ConversationScoped
+@RequestScoped
 public class ConversionManager implements Serializable {
   @EJB
   private CurrencyController currencyFacade;
