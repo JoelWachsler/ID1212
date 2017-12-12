@@ -1,6 +1,7 @@
-package id1212.wachsler.joel.homework5.controller
+package id1212.wachsler.joel.homework5.client.controller
 
-import id1212.wachsler.joel.homework5.net.ServerConnection
+import id1212.wachsler.joel.homework5.client.net.ServerConnection
+import id1212.wachsler.joel.homework5.common.GameState
 import java.io.IOException
 import java.util.concurrent.CompletableFuture
 
@@ -28,6 +29,28 @@ object Controller {
   fun guess(guess: String) {
     CompletableFuture.runAsync({
       ServerConnection.guess(guess)
+    })
+  }
+
+  /**
+   * @see ServerConnection#listen
+   */
+  fun registerListener(error: (msg: String) -> Unit, gameStateUpdate: (GameState) -> Unit) {
+    CompletableFuture.runAsync({
+      try {
+        ServerConnection.listen(gameStateUpdate)
+      } catch (e: Exception) {
+        error(e.message!!)
+      }
+    })
+  }
+
+  /**
+   * @see ServerConnection#disconnect
+   */
+  fun disconnect() {
+    CompletableFuture.runAsync({
+      ServerConnection.disconnect()
     })
   }
 }

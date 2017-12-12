@@ -1,6 +1,6 @@
 package id1212.wachsler.joel.homework5.server.game;
 
-import id1212.wachsler.joel.homework5.server.common.GameState;
+import id1212.wachsler.joel.homework5.common.GameState;
 import id1212.wachsler.joel.homework5.server.controller.Controller;
 
 /**

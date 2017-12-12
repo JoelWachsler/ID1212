@@ -1,7 +1,7 @@
 package id1212.wachsler.joel.homework5.server.net;
 
-import id1212.wachsler.joel.homework5.server.common.GameGuess;
-import id1212.wachsler.joel.homework5.server.common.GameState;
+import id1212.wachsler.joel.homework5.common.GameGuess;
+import id1212.wachsler.joel.homework5.common.GameState;
 import id1212.wachsler.joel.homework5.server.controller.Controller;
 
 import java.io.*;
@@ -46,6 +46,7 @@ public class ClientHandler implements Runnable {
         disconnectClient();
       } catch (IOException | ClassNotFoundException e) {
         System.err.println(e.getMessage());
+        e.printStackTrace();
         disconnectClient();
       }
     }

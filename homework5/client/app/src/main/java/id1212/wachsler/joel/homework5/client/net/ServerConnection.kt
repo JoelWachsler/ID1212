@@ -1,7 +1,7 @@
-package id1212.wachsler.joel.homework5.net
+package id1212.wachsler.joel.homework5.client.net
 
-import id1212.wachsler.joel.homework5.server.common.GameGuess
-import id1212.wachsler.joel.homework5.server.common.GameState
+import id1212.wachsler.joel.homework5.common.GameGuess
+import id1212.wachsler.joel.homework5.common.GameState
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.net.InetSocketAddress
@@ -33,16 +33,11 @@ object ServerConnection {
 
   /**
    * Listens for new messages on the socket.
-   * Calls the error callback on error and gameStateUpdate on success.
    */
-  fun listener(error: (msg: String) -> Unit, gameStateUpdate: (GameState) -> Unit) {
-    try {
-      while (true) {
-        val gameState = input?.readObject() as GameState
-        gameStateUpdate(gameState)
-      }
-    } catch (_: Throwable) {
-      error("Connection lost to the server...")
+  fun listen(gameStateUpdate: (GameState) -> Unit) {
+    while (true) {
+      val gameState = input?.readObject() as GameState
+      gameStateUpdate(gameState)
     }
   }
 
@@ -53,5 +48,22 @@ object ServerConnection {
     output?.writeObject(GameGuess(guess))
     output?.flush()
     output?.reset()
+  }
+
+  /**
+   * Closes the socket connection to the server.
+   */
+  fun disconnect() {
+    socket?.close()
+    socket = null
+    output = null
+    input = null
+  }
+
+  /**
+   * Checks if the client is connected to the server.
+   */
+  fun isConnected(): Boolean {
+    return socket != null
   }
 }

@@ -4,7 +4,7 @@
   xmlns:tools="http://schemas.android.com/tools"
   android:layout_width="match_parent"
   android:layout_height="match_parent"
-  tools:context="id1212.wachsler.joel.homework5.view.Connecting">
+  tools:context="id1212.wachsler.joel.homework5.client.view.Connecting">
 
   <TextView
     android:id="@+id/textView"
