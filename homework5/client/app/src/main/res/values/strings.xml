@@ -1,0 +1,7 @@
+<resources>
+  <string name="app_name">Hangman</string>
+  <string name="guess_btn">Guess</string>
+  <string name="tries_left">Tries: 0/7</string>
+  <string name="game_state">State: _ _ _ _ _ _ _</string>
+  <string name="score_output">Score: 0</string>
+</resources>
