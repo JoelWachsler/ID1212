@@ -2,11 +2,11 @@ package id1212.wachsler.joel.homework5.client.view
 
 import android.annotation.SuppressLint
 import android.content.DialogInterface
-import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.v7.app.AlertDialog
 import android.view.View
+import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import id1212.wachsler.joel.homework5.client.R
@@ -34,9 +34,6 @@ class Game : AppCompatActivity() {
 
     // Listen for server messages
     registerListener()
-
-    // Set default game state values
-    updateGameState(GameState(0, 0, 0, ""))
   }
 
   private fun registerListener() {
@@ -47,7 +44,7 @@ class Game : AppCompatActivity() {
           .setMessage(msg)
           .setPositiveButton("Ok", { _: DialogInterface, _: Int ->
             // If something goes wrong we're going back to the connection screen.
-            startActivity(Intent(this, Connecting::class.java))
+            finish()
           })
           .create()
           .show()
@@ -59,10 +56,12 @@ class Game : AppCompatActivity() {
 
   @SuppressLint("SetTextI18n")
   private fun updateGameState(gameState: GameState) {
-    guessInput?.setText("")
-    stateOutput?.text = "State: ${gameState.state}"
-    triesOutput?.text = "Tries: ${gameState.tries}/${gameState.totalTries}"
-    scoreOutput?.text = "Score: ${gameState.score}"
+    runOnUiThread({
+      guessInput?.setText("")
+      stateOutput?.text = "State: ${gameState.state}"
+      triesOutput?.text = "Tries: ${gameState.tries}/${gameState.totalTries}"
+      scoreOutput?.text = "Score: ${gameState.score}"
+    })
   }
 
   fun guess(v: View) {

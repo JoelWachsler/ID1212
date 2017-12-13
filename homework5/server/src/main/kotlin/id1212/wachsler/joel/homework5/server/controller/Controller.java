@@ -13,15 +13,10 @@ public class Controller {
   /**
    * @see Game#Constructor()
    */
-  public void newHangmanGame() {
+  public GameState newHangmanGame() {
     game = new Game(this);
-  }
 
-  /**
-   * @see Game#newGameInstance()
-   */
-  public void startNewGameInstance() {
-    game.newGameInstance();
+    return game.newGameInstance();
   }
 
   /**

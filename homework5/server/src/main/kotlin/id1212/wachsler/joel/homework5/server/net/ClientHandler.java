@@ -18,10 +18,9 @@ public class ClientHandler implements Runnable {
   private boolean connected;
   private Controller controller = new Controller();
 
-  ClientHandler(HangmanServer server, Socket clientSocket) {
+  ClientHandler(HangmanServer server, Socket clientSocket) throws IOException {
     this.server = server;
     this.clientSocket = clientSocket;
-    controller.newHangmanGame();
     connected = true;
   }
 
@@ -33,6 +32,12 @@ public class ClientHandler implements Runnable {
       toClient = new ObjectOutputStream(clientSocket.getOutputStream());
     } catch (IOException e) {
       System.err.println("Failed to create read/write streams...");
+      e.printStackTrace();
+    }
+
+    try {
+      sendMsg(controller.newHangmanGame());
+    } catch (IOException e) {
       e.printStackTrace();
     }
 

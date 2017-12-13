@@ -16,6 +16,13 @@ class Connecting : AppCompatActivity() {
     connect()
   }
 
+  override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+    super.onActivityResult(requestCode, resultCode, data)
+
+    // Maybe not the best way to reconnect...
+    connect()
+  }
+
   private fun connect() {
     Controller.connect(error = { msg ->
       runOnUiThread({

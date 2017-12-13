@@ -3,6 +3,8 @@ package id1212.wachsler.joel.homework5.server.game;
 import id1212.wachsler.joel.homework5.common.GameState;
 import id1212.wachsler.joel.homework5.server.controller.Controller;
 
+import java.util.StringJoiner;
+
 /**
  * Represents the Hangman game and its state.
  */
@@ -20,11 +22,10 @@ public class Game {
    *
    * @throws IllegalArgumentException If there already is a valid game instance in use.
    */
-  public void newGameInstance() throws IllegalStateException {
-    if (gameInstance != null && gameInstance.valid())
-      throw new IllegalStateException("There is already a valid game running!");
-
+  public GameState newGameInstance() throws IllegalStateException {
     gameInstance = new GameInstance(controller.randomWord());
+
+    return gameStateFactory();
   }
 
   /**
@@ -37,14 +38,31 @@ public class Game {
     if (gameInstance == null)
       throw new IllegalStateException("There is no game instance, start a new instance in order to play!");
 
-    gameInstance.guess(msgToGuess);
-    if (gameInstance.correctGuess()) score++;
-    else if (!gameInstance.valid()) score--;
+    try {
+      gameInstance.guess(msgToGuess);
+    } catch (IllegalStateException e) {
+      return gameStateFactory();
+    }
+
+    if (gameInstance.correctGuess()) {
+      score++;
+
+      return newGameInstance();
+    } else if (!gameInstance.valid()) {
+      score--;
+
+      return newGameInstance();
+    }
 
     return gameStateFactory();
   }
 
   private GameState gameStateFactory() {
-    return new GameState(score, gameInstance.getTries(), gameInstance.getTotalTries(), gameInstance.getWordGuess());
+    StringJoiner state = new StringJoiner(" ");
+
+    for (char c : gameInstance.getWordGuess().toCharArray())
+      state.add(c + "");
+
+    return new GameState(score, gameInstance.getTries(), gameInstance.getTotalTries(), state.toString());
   }
 }

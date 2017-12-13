@@ -3,7 +3,6 @@ package id1212.wachsler.joel.homework5.server.net;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,7 +39,7 @@ public class HangmanServer {
     }
   }
 
-  private void startClientHandler(Socket client) throws SocketException {
+  private void startClientHandler(Socket client) throws IOException {
     System.out.println("A client wants to connect!");
 
     client.setSoLinger(true, LINGER_TIME); // Set linger time
