@@ -2,15 +2,15 @@
 require('dotenv').config()
 
 import http from 'http'
-import socketio from 'socket.io'
-import { init } from './net'
+import socketIO from 'socket.io'
+import { connectionHandler } from './net'
 
 // Init socket.io
 const app = http.createServer()
-const io = socketio(app)
+const io = socketIO(app)
 
-// Init socket listeners
-init(io)
+// Init socket connection handler
+connectionHandler(io)
 
 // Start to listen
 const listener = app.listen(process.env.PORT, () => {

@@ -1,5 +1,11 @@
-import init from './init'
+import connectionHandler from './connection_handler'
+import {
+  heartbeat,
+  createNamespace
+} from './game_broadcast_handler'
 
 export {
-  init
+  connectionHandler,
+  heartbeat,
+  createNamespace
 }
