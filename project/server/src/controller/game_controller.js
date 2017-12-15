@@ -1,28 +1,20 @@
-import { Game } from '../game'
-
-import {
-  heartbeat
-} from '../net'
+import Game from "../game/game";
 
 export default class GameController {
-  constructor(io) {
-    this.io = io
-    this.game = new Game(this)
+  constructor(controller) {
+    this.controller = controller;
+    this.game = new Game(this.controller);
   }
 
-  createPlayer(socket) {
-    this.game.addPlayer(socket)
+  createPlayer(id) {
+    this.game.addPlayer(id);
   }
 
   removePlayer(id) {
-    this.game.removePlayer(id)
+    this.game.removePlayer(id);
   }
 
   updateMovement(id, newDirection) {
-    this.game.updateMovement(id, newDirection)
-  }
-
-  heartbeat(players) {
-    heartbeat(this.io, players)
+    this.game.updateMovement(id, newDirection);
   }
 }

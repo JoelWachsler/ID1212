@@ -3,7 +3,7 @@ require('dotenv').config()
 
 import http from 'http'
 import socketIO from 'socket.io'
-import { connectionHandler } from './net'
+import connectionHandler from './net/connection_handler'
 
 // Init socket.io
 const app = http.createServer()

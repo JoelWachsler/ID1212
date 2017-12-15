@@ -1,21 +1,18 @@
-const blockS = 25
-
+/**
+ * Visual representation of a snake.
+ *
+ * @param {*} body
+ */
 function Snake(body) {
-  this.body = body.map(part => createVector(part.x, part.y))
+  this.body = body.map(part => createVector(part.x, part.y));
+  this.head = this.body[0];
+  this.body.splice(0, 1);
 
-  this.render = function () {
+  this.render = function() {
+    rect(this.head.x, this.head.y, blockS, blockS);
+
     this.body.forEach(bodyPart => {
-      rect(bodyPart.x, bodyPart.y, blockS, blockS)
-    })
-  }
-
-  this.colliding = function (x, y, w, h) {
-    const xx = this.head.x
-    const yy = this.head.y
-
-    return xx + blockS > x // x-coords
-        && xx < x + w
-        && yy + blockS > y // y-coords
-        && yy < y + h
-  }
+      rect(bodyPart.x, bodyPart.y, blockS, blockS);
+    });
+  };
 }

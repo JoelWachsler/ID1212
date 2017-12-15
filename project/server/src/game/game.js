@@ -1,52 +1,99 @@
-import Player from './player'
-
-const FPS = 1
+import Snake from "./snake";
+import Point from "./point";
+import Food from "./food";
 
 /**
  * Keeps track of a game room instance.
  */
 export default class Game {
   constructor(controller) {
-    this.controller = controller
-    this.players = []
+    this.controller = controller;
+    this.snakes = [];
+    this.food = [];
+    this.gameArea = [];
+
+    // Let's create a game area
+    for (let i = -1000; i <= 1000; i += 25) {
+      // Top
+      this.gameArea.push(new Point(i, -1000));
+      // Right
+      this.gameArea.push(new Point(1000, i));
+      // Bottom
+      this.gameArea.push(new Point(i, 1000));
+      // Left
+      this.gameArea.push(new Point(-1000, i));
+    }
+
+    // Spawn some random food
+    for (let i = 0; i < 200; i++) {
+      const x = Math.floor(Math.random() * 80 - 50) * 25;
+      const y = Math.floor(Math.random() * 80 - 50) * 25;
+      this.food.push(new Food(new Point(x, y)));
+    }
+
+    // Rate of which to update the game
+    this.fps = 5;
 
     // Server fps
-    setInterval(this.heartbeat.bind(this), 1000 / FPS)
+    setInterval(this.updateSnakes.bind(this), 1000 / this.fps);
+  }
+
+  updateGameArea() {
+    this.controller.networkController.pushGameArea(this.gameArea);
+  }
+
+  updateFood() {
+    this.controller.networkController.pushFood(this.food);
   }
 
   /**
-   * Pushes the game state to all clients.
+   * Updates the game state for all players and pushes them.
    */
-  heartbeat() {
+  updateSnakes() {
+    const foodLen = this.food.length;
+
     // Move all players
-    this.players.forEach(player => player.applyMovement())
-    
+    this.snakes.forEach(snake => {
+      snake.applyMovement();
+
+      // Check if this player is colliding with a piece of food.
+      this.food = this.food.filter(food => {
+        const colliding = snake.isColliding(food.point);
+
+        if (colliding) snake.addBodyPart();
+
+        return !colliding;
+      });
+    });
+
+    if (this.food.length != foodLen) this.updateFood();
+
     // Broadcast them
-    this.controller.heartbeat(this.players.map(player => player.state))
+    this.controller.networkController.pushSnakes(this.snakes);
   }
 
   updateMovement(id, newDirection) {
-    const player = this.players.find(player => player.id === id)
-    player.updateMovement(newDirection)
+    const snake = this.snakes.find(snake => snake.id === id);
+    snake.changeMovement(newDirection);
   }
 
   /**
    * Adds a player to the current game instance.
-   * 
-   * @param {*} socket 
+   *
+   * @param {*} socket
    */
-  addPlayer(socket) {
-    this.players.push(new Player(socket))
+  addPlayer(id) {
+    this.snakes.push(new Snake(id));
   }
 
   /**
    * Removes the player with the provided id from the list of players in this game.
-   * 
-   * @param {*} id 
+   *
+   * @param {*} id
    */
   removePlayer(id) {
-    const index = this.players.findIndex(player => player.id === id)
+    const index = this.snakes.findIndex(snake => snake.id === id);
 
-    this.players.splice(index, 1)
+    this.snakes.splice(index, 1);
   }
 }
