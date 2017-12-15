@@ -1,0 +1,17 @@
+{
+  "name": "snake-frontend",
+  "version": "1.0.0",
+  "description": "Snake frontend for the project in the Network Programming course ID1212",
+  "main": "client.js",
+  "author": "Joel Wachsler <wachsler@kth.se>",
+  "license": "MIT",
+  "scripts": {
+    "start": "node client.js"
+  },
+  "dependencies": {
+    "dotenv": "^4.0.0",
+    "express": "^4.16.2",
+    "p5": "^0.5.16",
+    "socket.io": "^2.0.4"
+  }
+}
