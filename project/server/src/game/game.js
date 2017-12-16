@@ -55,7 +55,6 @@ export default class Game {
     const foodLen = this.food.length;
 
     // Move all players
-    // Go from the back so we don't miss a player if we remove them.
     this.snakes.forEach(snake => {
       snake.applyMovement();
 
@@ -88,7 +87,24 @@ export default class Game {
       return true;
     });
 
+    // Check if a snake is eating another snake
+    for (let i = 0; i < this.snakes.length; i++) {
+      const snake = this.snakes[i];
 
+      for (let j = 0; j < this.snakes.length; j++) {
+        if (i == j) continue;
+
+        const anotherSnake = this.snakes[j];
+        for (let k = 1; k < anotherSnake.body.length; k++) {
+          if (snake.isColliding(anotherSnake.body[k])) {
+            const bodyPartsEaten = anotherSnake.body.splice(k);
+
+            // Add the pieces to the other snake
+            bodyPartsEaten.forEach(bodyPart => snake.addBodyPart());
+          }
+        }
+      }
+    }
 
     // Only update the food if something happened to them
     if (this.food.length != foodLen) this.updateFood();
