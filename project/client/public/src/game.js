@@ -17,6 +17,8 @@ function setup() {
   food = [];
   // Our game area
   gameArea = null;
+  // Previous point - used for lerp
+  prevPos = createVector(0,0)
 
   const idListener = socket.on("id", id => {
     console.log("Got an id:", id);
@@ -58,11 +60,13 @@ function setup() {
 function draw() {
   background(61,84,103); // Background color
 
-  // Find our snake and put it in the middle of the screen
+  // Put our snake in the middle of the screen
   if (snake !== null && typeof snake !== 'undefined') {
     // Make the transition smoother
-    translate(-snake.body[0].x + width / 2, -snake.body[0].y + height / 2);
-  } else translate(0, 0);
+    const vec = createVector(-snake.body[0].x + width / 2, -snake.body[0].y + height / 2);
+    prevPos = p5.Vector.lerp(prevPos, vec, 0.1);
+    translate(prevPos.x, prevPos.y);
+  }
 
   snakes.forEach(snake => snake.render());
   food.forEach(food => food.render());

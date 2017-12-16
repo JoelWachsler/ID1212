@@ -34,7 +34,7 @@ export default class Game {
     }
 
     // Rate of which to update the game
-    this.fps = 10;
+    this.fps = 5;
 
     // Server fps
     setInterval(this.updateSnakes.bind(this), 1000 / this.fps);
