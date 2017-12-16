@@ -67,12 +67,24 @@ export default class Game {
       });
     })
 
-    // Check if a snake is colliding with itself
+    // Check if a snake is colliding with itself or a wall.
     this.snakes = this.snakes.filter(snake => {
-      const isColliding = snake.isCollidingWithSelf();
-      if (isColliding) this.controller.networkController.pushGameOver(snake.id, "ate yourself!");
+      const isEatingThemselves = snake.isCollidingWithSelf();
+      if (isEatingThemselves) {
+        this.controller.networkController.pushGameOver(snake.id, "ate yourself!");
+        return false;
+      }
 
-      return !isColliding;
+      this.gameArea.forEach(wall => {
+        const isCrashingIntoAWall = snake.isColliding(wall);
+
+        if (isCrashingIntoAWall) {
+          this.controller.networkController.pushGameOver(snake.id, "crashed into a wall!");
+          return false;
+        }
+      });
+
+      return true;
     });
 
     // Only update the food if something happened to them
