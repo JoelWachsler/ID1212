@@ -22,11 +22,12 @@ function setup() {
     console.log("Got an id:", id);
     this.id = id;
 
-    // We don't need the listener anymore
+    // We don't need the id listener anymore
     socket.removeListener("id", idListener);
 
     // Listen for snake changes
     socket.on("update_snakes", snakes => {
+      console.log(snakes);
       // Can optimize this if needed
       this.snake = snakes.find(snake => snake.id === this.id);
       this.snakes = snakes.map(snake => new Snake(snake.body));
@@ -41,6 +42,10 @@ function setup() {
     socket.on("update_game_area", gameArea => {
       this.gameArea = new GameArea(gameArea);
     });
+
+    // Listen for when we die
+    // socket.on("game_over", ({ id, reason }) => {
+    // });
   });
 }
 
@@ -48,10 +53,10 @@ function setup() {
  * Drawing loop.
  */
 function draw() {
-  background(0); // Background color
+  background(61,84,103); // Background color
 
   // Find our snake and put it in the middle of the screen
-  if (snake !== null) {
+  if (snake !== null && typeof snake !== 'undefined') {
     // Make the transition smoother
     translate(-snake.body[0].x + width / 2, -snake.body[0].y + height / 2);
   } else translate(0, 0);

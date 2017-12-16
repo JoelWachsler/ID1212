@@ -6,6 +6,7 @@ function Food({ x, y }) {
   this.y = y;
 
   this.render = function() {
+    fill(27,45,42);
     rect(this.x, this.y, blockS, blockS);
   };
 }

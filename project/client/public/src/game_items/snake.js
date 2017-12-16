@@ -9,10 +9,12 @@ function Snake(body) {
   this.body.splice(0, 1);
 
   this.render = function() {
-    rect(this.head.x, this.head.y, blockS, blockS);
-
+    fill(104,105,99);
     this.body.forEach(bodyPart => {
       rect(bodyPart.x, bodyPart.y, blockS, blockS);
     });
+
+    fill(138,162,158);
+    rect(this.head.x, this.head.y, blockS, blockS);
   };
 }

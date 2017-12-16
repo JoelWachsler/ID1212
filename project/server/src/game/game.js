@@ -12,7 +12,7 @@ export default class Game {
     this.food = [];
     this.gameArea = [];
 
-    // Let's create a game area
+    // Let's create the game area
     for (let i = -1000; i <= 1000; i += 25) {
       // Top
       this.gameArea.push(new Point(i, -1000));
@@ -32,7 +32,7 @@ export default class Game {
     }
 
     // Rate of which to update the game
-    this.fps = 5;
+    this.fps = 10;
 
     // Server fps
     setInterval(this.updateSnakes.bind(this), 1000 / this.fps);
@@ -53,7 +53,10 @@ export default class Game {
     const foodLen = this.food.length;
 
     // Move all players
-    this.snakes.forEach(snake => {
+    // Go from the back so we don't miss a player if we remove them.
+    for (let i = this.snakes.length - 1; i >= 0; i--) {
+      const snake = this.snakes[i];
+
       snake.applyMovement();
 
       // Check if this player is colliding with a piece of food.
@@ -64,8 +67,18 @@ export default class Game {
 
         return !colliding;
       });
-    });
 
+      // Check if the current snake is colliding with itself
+      if (snake.isCollidingWithSelf()) {
+        // Remove the current snake
+        // this.snakes.splice(i, 1);
+
+        // Alert everyone that this snake has died!
+        // this.controller.networkController.pushGameOver(snake.id, "Ate own body!");
+      }
+    }
+
+    // Only update the food if something happened to them
     if (this.food.length != foodLen) this.updateFood();
 
     // Broadcast them

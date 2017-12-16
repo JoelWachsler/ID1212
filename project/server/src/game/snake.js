@@ -18,12 +18,19 @@ export default class Snake {
     this.head = new Point(0, 0);
     this.body = [this.head];
     this.direction = RIGHT;
+
+    // Body parts to be added on the next tick.
+    this.bodyPartsToAdd = [];
   }
 
   /**
    * Moves the snake head and body to the current direction.
    */
   applyMovement() {
+    // Add new body parts if there are any
+    if (this.bodyPartsToAdd.length > 0)
+      this.body.push(this.bodyPartsToAdd.pop())
+
     // Move the body parts
     for (let i = this.body.length - 1; i > 0; i--) {
       const { x, y } = this.body[i - 1];
@@ -71,13 +78,32 @@ export default class Snake {
     }
   }
 
+  /**
+   * Checks if the snake head is colliding with the provided point.
+   * 
+   * @param {*} point The points to check if the head is colliding with.
+   */
   isColliding(point) {
-    return (
-      this.body.findIndex(part => part.x == point.x && part.y == point.y) !== -1
-    );
+    const { x, y } = this.head;
+
+    return x === point.x && y === point.y;
+  }
+
+  /**
+   * Check if this snake is eating itself.
+   */
+  isCollidingWithSelf() {
+    const { x, y } = this.head;
+
+    for (let i = 1; i < this.body.length; i++) {
+      if (this.body[i].x === x && this.body[i].y === y)
+        return true
+    }
+
+    return false
   }
 
   addBodyPart() {
-    this.body.push(new Point(this.head.x, this.head.y));
+    this.bodyPartsToAdd.push(new Point(this.head.x, this.head.y));
   }
 }

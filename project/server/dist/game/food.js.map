@@ -1,0 +1,1 @@
+{"version":3,"sources":["../../src/game/food.js"],"names":["Food","point"],"mappings":";;;;;;;;IAAqBA,I,GACnB,cAAYC,KAAZ,EAAmB;AAAA;;AACjB,OAAKA,KAAL,GAAaA,KAAb;AACD,C;;kBAHkBD,I","file":"food.js","sourcesContent":["export default class Food {\n  constructor(point) {\n    this.point = point;\n  }\n}\n"]}

@@ -1,7 +1,8 @@
 import {
   pushSnakes,
   pushFood,
-  pushGameArea
+  pushGameArea,
+  pushGameOver
 } from "../net/game_broadcast_handler";
 
 export default class NetworkController {
@@ -17,6 +18,10 @@ export default class NetworkController {
     pushSnakes(socket, snakes);
     pushFood(socket, food);
     pushGameArea(socket, gameArea);
+  }
+
+  pushGameOver(id, reason) {
+    pushGameOver(this.io, id, reason);
   }
 
   pushGameArea(gameArea) {
