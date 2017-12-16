@@ -1,3 +1,5 @@
+//@ts-check
+
 /**
  * Broadcasts information about a game to all players connected to the provided room.
  * 

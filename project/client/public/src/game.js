@@ -27,7 +27,6 @@ function setup() {
 
     // Listen for snake changes
     socket.on("update_snakes", snakes => {
-      console.log(snakes);
       // Can optimize this if needed
       this.snake = snakes.find(snake => snake.id === this.id);
       this.snakes = snakes.map(snake => new Snake(snake.body));

@@ -6,7 +6,7 @@
   "scripts": {
     "prestart": "yarn run -s build",
     "start": "node dist",
-    "dev": "nodemon -w src --exec babel-node src --presets env,stage-0",
+    "dev": "nodemon -w src --exec babel-node src --source-maps --presets env,stage-0",
     "build": "babel src -s -D -d dist --presets env,stage-0",
     "test": "eslint src"
   },

@@ -1,3 +1,5 @@
+// @ts-check
+
 import Snake from "./snake";
 import Point from "./point";
 import Food from "./food";
@@ -86,14 +88,19 @@ export default class Game {
       return true;
     });
 
+
+
     // Only update the food if something happened to them
     if (this.food.length != foodLen) this.updateFood();
-    console.log(this.snakes.length);
 
     // Broadcast them
     this.controller.networkController.pushSnakes(this.snakes);
   }
 
+  /**
+   * @param {number} id 
+   * @param {number} newDirection 
+   */
   updateMovement(id, newDirection) {
     const snake = this.snakes.find(snake => snake.id === id);
     snake.changeMovement(newDirection);
@@ -102,7 +109,7 @@ export default class Game {
   /**
    * Adds a player to the current game instance.
    *
-   * @param {*} socket
+   * @param {number} id
    */
   addPlayer(id) {
     this.snakes.push(new Snake(id));
@@ -115,6 +122,8 @@ export default class Game {
    */
   removePlayer(id) {
     const index = this.snakes.findIndex(snake => snake.id === id);
+
+    if (index === -1) return;
 
     this.snakes.splice(index, 1);
   }
