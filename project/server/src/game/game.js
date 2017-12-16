@@ -75,20 +75,20 @@ export default class Game {
         return false;
       }
 
-      this.gameArea.forEach(wall => {
-        const isCrashingIntoAWall = snake.isColliding(wall);
-
-        if (isCrashingIntoAWall) {
+      for (let i = 0; i < this.gameArea.length; i++) {
+        if (snake.isColliding(this.gameArea[i])) {
           this.controller.networkController.pushGameOver(snake.id, "crashed into a wall!");
+
           return false;
         }
-      });
+      }
 
       return true;
     });
 
     // Only update the food if something happened to them
     if (this.food.length != foodLen) this.updateFood();
+    console.log(this.snakes.length);
 
     // Broadcast them
     this.controller.networkController.pushSnakes(this.snakes);
