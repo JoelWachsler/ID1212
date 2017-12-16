@@ -54,9 +54,7 @@ export default class Game {
 
     // Move all players
     // Go from the back so we don't miss a player if we remove them.
-    for (let i = this.snakes.length - 1; i >= 0; i--) {
-      const snake = this.snakes[i];
-
+    this.snakes.forEach(snake => {
       snake.applyMovement();
 
       // Check if this player is colliding with a piece of food.
@@ -67,16 +65,15 @@ export default class Game {
 
         return !colliding;
       });
+    })
 
-      // Check if the current snake is colliding with itself
-      if (snake.isCollidingWithSelf()) {
-        // Remove the current snake
-        // this.snakes.splice(i, 1);
+    // Check if a snake is colliding with itself
+    this.snakes = this.snakes.filter(snake => {
+      const isColliding = snake.isCollidingWithSelf();
+      if (isColliding) this.controller.networkController.pushGameOver(snake.id, "ate yourself!");
 
-        // Alert everyone that this snake has died!
-        // this.controller.networkController.pushGameOver(snake.id, "Ate own body!");
-      }
-    }
+      return !isColliding;
+    });
 
     // Only update the food if something happened to them
     if (this.food.length != foodLen) this.updateFood();

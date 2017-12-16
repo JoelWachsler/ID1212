@@ -44,8 +44,12 @@ function setup() {
     });
 
     // Listen for when we die
-    // socket.on("game_over", ({ id, reason }) => {
-    // });
+    socket.on("game_over", ({ id, reason }) => {
+      if (id == this.id) {
+        alert(`You died: ${reason}`);
+        location.reload();
+      }
+    });
   });
 }
 
