@@ -1,10 +1,15 @@
 //@ts-check
 
+import Food from "../game/food";
+import Snake from "../game/snake";
+import Point from "../game/point";
+
 /**
  * Broadcasts information about a game to all players connected to the provided room.
  * 
  * @param {*} io 
- * @param {*} snakes
+ * @param {Snake[]} snakes
+ * @api public
  */
 export async function pushSnakes(io, snakes) {
   io.emit("update_snakes", snakes);
@@ -14,7 +19,8 @@ export async function pushSnakes(io, snakes) {
  * Update food locations.
  * 
  * @param {*} io 
- * @param {*} food 
+ * @param {Food} food 
+ * @api public
  */
 export async function pushFood(io, food) {
   io.emit("update_food", food);
@@ -24,7 +30,8 @@ export async function pushFood(io, food) {
  * Update the game area.
  * 
  * @param {*} io 
- * @param {*} gameArea 
+ * @param {Point[]} gameArea 
+ * @api public
  */
 export async function pushGameArea(io, gameArea) {
   io.emit("update_game_area", gameArea);
@@ -34,7 +41,8 @@ export async function pushGameArea(io, gameArea) {
  * Tell a player that their game is over.
  * 
  * @param {*} io 
- * @param {*} reason 
+ * @param {String} reason Reason for game over.
+ * @api public
  */
 export async function pushGameOver(io, id, reason) {
   io.emit("game_over", {

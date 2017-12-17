@@ -4,17 +4,23 @@ import Snake from "./snake";
 import Point from "./point";
 import Food from "./food";
 import { SIZE } from "../common/constants";
+import Controller from "../controller/controller";
 
 /**
  * Keeps track of a game room instance.
  */
 export default class Game {
+  /**
+   * @param {Controller} controller 
+   * @api public
+   */
   constructor(controller) {
     this.controller = controller;
     this.snakes = [];
     this.food = [];
     this.gameArea = [];
 
+    // Define the game area.
     this.gameAreaWidth = 1000;
     this.gameAreaHeight = 1000;
 
@@ -36,6 +42,11 @@ export default class Game {
     this.spawnFood();
   }
 
+  /**
+   * Creates points for the game area.
+   * 
+   * @api private
+   */
   createGameArea() {
     // Let's create the game area
     for (let i = -this.gameAreaWidth; i <= this.gameAreaHeight; i += 25) {
@@ -50,6 +61,16 @@ export default class Game {
     }
   }
 
+  /**
+   * Generates a random point depending on the input.
+   * 
+   * @param {number} minX 
+   * @param {number} maxX 
+   * @param {number} minY 
+   * @param {number} maxY 
+   * @return {Point} point
+   * @api private
+   */
   randomPoint(minX=-this.gameAreaWidth+25,
               maxX=this.gameAreaWidth-25,
               minY=-this.gameAreaHeight+25,
@@ -65,6 +86,9 @@ export default class Game {
     return new Point(x, y);
   }
 
+  /**
+   * @api private
+   */
   spawnFood() {
     // Spawn some random food
     // 200 attempts
@@ -103,16 +127,24 @@ export default class Game {
     this.updateFood();
   }
 
+  /**
+   * @api private
+   */
   updateGameArea() {
     this.controller.networkController.pushGameArea(this.gameArea);
   }
 
+  /**
+   * @api private
+   */
   updateFood() {
     this.controller.networkController.pushFood(this.food);
   }
 
   /**
    * Updates the game state for all players and pushes them.
+   * 
+   * @api private
    */
   updateSnakes() {
     const foodLen = this.food.length;
@@ -179,6 +211,7 @@ export default class Game {
   /**
    * @param {number} id 
    * @param {number} newDirection 
+   * @api private
    */
   updateMovement(id, newDirection) {
     const snake = this.snakes.find(snake => snake.id === id);
@@ -189,6 +222,7 @@ export default class Game {
    * Adds a player to the current game instance.
    *
    * @param {string} id
+   * @api public
    */
   addPlayer(id) {
     // Spawn a new snake on a free position.
@@ -216,7 +250,8 @@ export default class Game {
   /**
    * Removes the player with the provided id from the list of players in this game.
    *
-   * @param {*} id
+   * @param {string} id
+   * @api public
    */
   removePlayer(id) {
     const index = this.snakes.findIndex(snake => snake.id === id);

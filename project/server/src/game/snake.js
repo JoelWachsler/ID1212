@@ -17,6 +17,7 @@ export default class Snake extends Colliding {
   /**
    * @param {string} id 
    * @param {Point} point 
+   * @api public
    */
   constructor(id, point) {
     super();
@@ -32,6 +33,8 @@ export default class Snake extends Colliding {
 
   /**
    * Moves the snake head and body to the current direction.
+   * 
+   * @api public
    */
   applyMovement() {
     // Add new body parts if there are any
@@ -65,6 +68,7 @@ export default class Snake extends Colliding {
    * Checks if the current direction is not in the opposite way of the head.
    *
    * @param {number} newDirection
+   * @api public
    */
   changeMovement(newDirection) {
     const current = this.direction;
@@ -88,7 +92,8 @@ export default class Snake extends Colliding {
   /**
    * Checks if the snake head is colliding with the provided point.
    * 
-   * @param {*} point The points to check if the head is colliding with.
+   * @param {Point} point The points to check if the head is colliding with.
+   * @api public
    */
   isColliding(point) {
     return super.colliding(this.head, point);
@@ -96,6 +101,8 @@ export default class Snake extends Colliding {
 
   /**
    * Check if this snake is eating itself.
+   * 
+   * @api public
    */
   isCollidingWithSelf() {
     for (let i = 1; i < this.body.length; i++) {
@@ -108,6 +115,8 @@ export default class Snake extends Colliding {
 
   /**
    * Adds a body part the next game tick.
+   * 
+   * @api public
    */
   addBodyPart() {
     this.bodyPartsToAdd.push(new Point(this.head.x, this.head.y));
