@@ -17,8 +17,13 @@ function setup() {
   food = [];
   // Our game area
   gameArea = null;
-  // Previous point - used for lerp
-  prevPos = createVector(0,0)
+  // Variable for smoother screen movement.
+  lerpingPos = createVector(0,0);
+  // Update fps every half a second
+  fps = 0;
+  setInterval(() => {
+    this.fps = Math.round(frameRate())
+  }, 500);
 
   const idListener = socket.on("id", id => {
     console.log("Got an id:", id);
@@ -54,34 +59,48 @@ function setup() {
   });
 }
 
-/**
- * Drawing loop.
- */
-function draw() {
-  background(61,84,103); // Background color
-
-  // Put our snake in the middle of the screen
+function centerOurSnake() {
+  // Put our snake in the middle of the screen if it exists.
   if (snake !== null && typeof snake !== 'undefined') {
     // Make the transition smoother
     const vec = createVector(-snake.body[0].x + width / 2, -snake.body[0].y + height / 2);
-    prevPos = p5.Vector.lerp(prevPos, vec, 0.1);
-    translate(prevPos.x, prevPos.y);
+    lerpingPos = p5.Vector.lerp(lerpingPos, vec, 0.1);
+    translate(lerpingPos.x, lerpingPos.y);
   }
+}
 
+function renderFps() {
+  if (snake !== null) {
+    textSize(fontSize);
+    fill(255);
+
+    const { x, y } = lerpingPos;
+    // Draw the framerate in the top left corner.
+    text(fps, -x, -y+fontSize);
+  }
+}
+
+function renderGame() {
   snakes.forEach(snake => snake.render());
   food.forEach(food => food.render());
   if (gameArea != null) gameArea.render();
 }
 
 /**
+ * Drawing loop.
+ */
+function draw() {
+  background(61,84,103); // Background color
+
+  centerOurSnake();
+  renderGame();
+  renderFps();
+}
+
+/**
  * Listens for keys.
  */
 function keyPressed() {
-  const UP = 0;
-  const RIGHT = 1;
-  const DOWN = 2;
-  const LEFT = 3;
-
   switch (keyCode) {
     case UP_ARROW:
       socket.emit("update_movement", UP);

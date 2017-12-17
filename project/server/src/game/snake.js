@@ -103,6 +103,9 @@ export default class Snake {
     return false
   }
 
+  /**
+   * Adds a body part the next game tick.
+   */
   addBodyPart() {
     this.bodyPartsToAdd.push(new Point(this.head.x, this.head.y));
   }
