@@ -1,5 +1,4 @@
 // @ts-check
-
 import Point from "./point";
 
 /**

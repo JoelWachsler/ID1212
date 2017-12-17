@@ -1,5 +1,4 @@
 // @ts-check
-
 import Colliding from "./colliding";
 import Point from "../game/point";
 

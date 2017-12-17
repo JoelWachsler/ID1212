@@ -1,5 +1,4 @@
 // @ts-check
-
 import ClientHandler from "./client_handler";
 import Controller from "../controller/controller";
 

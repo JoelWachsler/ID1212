@@ -1,5 +1,4 @@
 // @ts-check
-
 import Snake from "./snake";
 import Point from "./point";
 import Food from "./food";
@@ -209,7 +208,7 @@ export default class Game {
   }
 
   /**
-   * @param {number} id 
+   * @param {string} id 
    * @param {number} newDirection 
    * @api private
    */

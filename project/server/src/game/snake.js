@@ -1,5 +1,4 @@
 // @ts-check
-
 import Point from "./point";
 import Colliding from "./colliding";
 import { SIZE } from "../common/constants";

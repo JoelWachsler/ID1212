@@ -1,5 +1,4 @@
 // @ts-check
-
 /**
  * Defines a point with an x and y coordinate.
  */

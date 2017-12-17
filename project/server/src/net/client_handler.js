@@ -1,5 +1,4 @@
 // @ts-check
-
 import Controller from "../controller/controller";
 
 /**

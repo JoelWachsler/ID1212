@@ -1,5 +1,4 @@
 //@ts-check
-
 import Food from "../game/food";
 import Snake from "../game/snake";
 import Point from "../game/point";
@@ -19,7 +18,7 @@ export async function pushSnakes(io, snakes) {
  * Update food locations.
  * 
  * @param {*} io 
- * @param {Food} food 
+ * @param {Food[]} food 
  * @api public
  */
 export async function pushFood(io, food) {
