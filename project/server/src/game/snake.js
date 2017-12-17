@@ -1,21 +1,28 @@
-import Point from "./point";
+// @ts-check
 
-// Snake block size
-const SIZE = 25;
+import Point from "./point";
+import Colliding from "./colliding";
+import { SIZE } from "../common/constants";
 
 // Different directions
-const UP = 0;
+const UP    = 0;
 const RIGHT = 1;
-const DOWN = 2;
-const LEFT = 3;
+const DOWN  = 2;
+const LEFT  = 3;
 
 /**
  * An instance of a snake.
  */
-export default class Snake {
-  constructor(id) {
+export default class Snake extends Colliding {
+  /**
+   * @param {string} id 
+   * @param {Point} point 
+   */
+  constructor(id, point) {
+    super();
+
     this.id = id;
-    this.head = new Point(0, 0);
+    this.head = point;
     this.body = [this.head];
     this.direction = RIGHT;
 
@@ -57,7 +64,7 @@ export default class Snake {
    * Change the direction of the snake.
    * Checks if the current direction is not in the opposite way of the head.
    *
-   * @param {*} newDirection
+   * @param {number} newDirection
    */
   changeMovement(newDirection) {
     const current = this.direction;
@@ -84,19 +91,15 @@ export default class Snake {
    * @param {*} point The points to check if the head is colliding with.
    */
   isColliding(point) {
-    const { x, y } = this.head;
-
-    return x === point.x && y === point.y;
+    return super.colliding(this.head, point);
   }
 
   /**
    * Check if this snake is eating itself.
    */
   isCollidingWithSelf() {
-    const { x, y } = this.head;
-
     for (let i = 1; i < this.body.length; i++) {
-      if (this.body[i].x === x && this.body[i].y === y)
+      if (super.colliding(this.head, this.body[i]))
         return true
     }
 

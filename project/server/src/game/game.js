@@ -3,6 +3,7 @@
 import Snake from "./snake";
 import Point from "./point";
 import Food from "./food";
+import { SIZE } from "../common/constants";
 
 /**
  * Keeps track of a game room instance.
@@ -14,30 +15,92 @@ export default class Game {
     this.food = [];
     this.gameArea = [];
 
-    // Let's create the game area
-    for (let i = -1000; i <= 1000; i += 25) {
-      // Top
-      this.gameArea.push(new Point(i, -1000));
-      // Right
-      this.gameArea.push(new Point(1000, i));
-      // Bottom
-      this.gameArea.push(new Point(i, 1000));
-      // Left
-      this.gameArea.push(new Point(-1000, i));
-    }
+    this.gameAreaWidth = 1000;
+    this.gameAreaHeight = 1000;
 
-    // Spawn some random food
-    for (let i = 0; i < 200; i++) {
-      const x = Math.floor(Math.random() * 80 - 50) * 25;
-      const y = Math.floor(Math.random() * 80 - 50) * 25;
-      this.food.push(new Food(new Point(x, y)));
-    }
+    this.createGameArea();
 
     // Rate of which to update the game
     this.fps = 5;
 
     // Server fps
     setInterval(this.updateSnakes.bind(this), 1000 / this.fps);
+
+    // Let's spawn some random food if there's less than 100 on the board.
+    // Check every 5 seconds.
+    setInterval(() => {
+      if (this.food.length < 100) this.spawnFood();
+    }, 5000);
+
+    // Initial spawn
+    this.spawnFood();
+  }
+
+  createGameArea() {
+    // Let's create the game area
+    for (let i = -this.gameAreaWidth; i <= this.gameAreaHeight; i += 25) {
+      // Top
+      this.gameArea.push(new Point(i, -this.gameAreaHeight));
+      // Right
+      this.gameArea.push(new Point(this.gameAreaWidth, i));
+      // Bottom
+      this.gameArea.push(new Point(i, this.gameAreaHeight));
+      // Left
+      this.gameArea.push(new Point(-this.gameAreaWidth, i));
+    }
+  }
+
+  randomPoint(minX=-this.gameAreaWidth+25,
+              maxX=this.gameAreaWidth-25,
+              minY=-this.gameAreaHeight+25,
+              maxY=this.gameAreaHeight-25) {
+
+    let x = Math.floor(Math.random() * (maxX - minX) + minX);
+    let y = Math.floor(Math.random() * (maxY - minY) + minY);
+
+    // Only multiples of 25.
+    x -= x % SIZE;
+    y -= y % SIZE;
+
+    return new Point(x, y);
+  }
+
+  spawnFood() {
+    // Spawn some random food
+    // 200 attempts
+    for (let i = 0; i < 200; i++) {
+      const newFood = new Food(this.randomPoint());
+
+
+      // Do not spawn food on another piece of food.
+      const isCollidingFood = this.food.findIndex(food => food.isColliding(newFood.point));
+      if (isCollidingFood !== -1) continue;
+
+      // Do not spawn food on a snake.
+      let isCollidingSnake = false;
+      for (let j = 0; j < this.snakes.length && !isCollidingSnake; j++) {
+        const snake = this.snakes[j];
+        if (newFood.isColliding(snake.head)) {
+          isCollidingSnake = true;
+          break;
+        }
+
+        for (let k = 0; k < snake.body.length; k++) {
+          const body = snake.body[k];
+          if (newFood.isColliding(body)) {
+            isCollidingSnake = true;
+            break;
+          }
+        }
+      }
+
+      if (isCollidingSnake) continue;
+
+      this.food.push(newFood);
+    }
+
+    // Push the changes to all clients.
+    this.updateFood();
   }
 
   updateGameArea() {
@@ -125,10 +188,29 @@ export default class Game {
   /**
    * Adds a player to the current game instance.
    *
-   * @param {number} id
+   * @param {string} id
    */
   addPlayer(id) {
-    this.snakes.push(new Snake(id));
+    // Spawn a new snake on a free position.
+    let okSpawn = false;
+    while (!okSpawn) {
+      const spawnPoint = this.randomPoint(
+        -this.gameAreaWidth+25,
+        this.gameAreaWidth-500,
+        -this.gameAreaHeight+25,
+        this.gameAreaHeight-25);
+      okSpawn = true;
+
+      for (let i = 0; i < this.snakes.length; i++) {
+        if (this.snakes[i].isColliding(spawnPoint)) {
+          okSpawn = false;
+          break;
+        }
+      }
+
+      if (okSpawn)
+        this.snakes.push(new Snake(id, spawnPoint));
+    }
   }
 
   /**

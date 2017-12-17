@@ -102,9 +102,6 @@ function renderScore() {
   // Calculate the score of each snake
   let snakeCounter = 1;
   const scoreBoard = snakes.map(snake => {
-    console.log(snakes)
-    console.log(snake)
-    console.log(id)
     return {
       name: snake.id === id ? 'You' : `Snake${snakeCounter++}`,
       score: snake.body.length
