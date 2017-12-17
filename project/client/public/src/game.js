@@ -1,7 +1,14 @@
 /**
- * Project constructor.
+ * Game setup.
  */
 function setup() {
+  window.onresize = function (event) {
+    console.log('resize')
+    width = window.innerWidth
+    height = window.innerHeight
+    createCanvas(width, height);
+  }
+
   createCanvas(width, height);
   frameRate(60);
   rectMode(CENTER); // Draw rectangles from the center
@@ -36,7 +43,7 @@ function setup() {
     socket.on("update_snakes", snakes => {
       // Can optimize this if needed
       this.snake = snakes.find(snake => snake.id === this.id);
-      this.snakes = snakes.map(snake => new Snake(snake.body));
+      this.snakes = snakes.map(snake => new Snake(snake.body, snake.id));
     });
 
     // Listen for food changes
@@ -76,7 +83,7 @@ function renderFps() {
 
     const { x, y } = lerpingPos;
     // Draw the framerate in the top left corner.
-    text(fps, -x, -y+fontSize);
+    text(`FPS: ${fps}`, -x, -y+fontSize);
   }
 }
 
@@ -84,6 +91,35 @@ function renderGame() {
   snakes.forEach(snake => snake.render());
   food.forEach(food => food.render());
   if (gameArea != null) gameArea.render();
+}
+
+function renderScore() {
+  textSize(fontSize);
+  fill(255);
+
+  const { x, y } = lerpingPos;
+
+  // Calculate the score of each snake
+  let snakeCounter = 1;
+  const scoreBoard = snakes.map(snake => {
+    console.log(snakes)
+    console.log(snake)
+    console.log(id)
+    return {
+      name: snake.id === id ? 'You' : `Snake${snakeCounter++}`,
+      score: snake.body.length
+    }
+  }).sort((snake1, snake2) => snake2.score - snake1.score);
+
+  // Draw the score in the top right corner.
+  let counter = 0;
+  scoreBoard.forEach(({name, score}) => {
+    if (name === 'You') {
+      text(`${name}: ${score}`, -x+width-4*fontSize-fontSize/3, -y+fontSize+counter++*fontSize);
+    } else {
+      text(`${name}: ${score}`, -x+width-6*fontSize, -y+fontSize+counter++*fontSize);
+    }
+  })
 }
 
 /**
@@ -94,6 +130,7 @@ function draw() {
 
   centerOurSnake();
   renderGame();
+  renderScore();
   renderFps();
 }
 

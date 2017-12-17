@@ -1,7 +1,7 @@
 // Various game data
 const blockS = 25
-const width = window.innerWidth
-const height = window.innerHeight
+let width = window.innerWidth
+let height = window.innerHeight
 const fontSize = 24
 
 // Directions
