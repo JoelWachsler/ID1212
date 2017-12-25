@@ -11,6 +11,9 @@ function Net(controller, host, port) {
 Net.prototype = {
   set movement(newDirection) {
     this.socket.emit("update_movement", newDirection);
+  },
+  newGame() {
+    this.socket.emit("game_start");
   }
 };
 
@@ -22,12 +25,12 @@ Net.prototype = {
  */
 Net.prototype.connect = function(server, port) {
   this.socket = io(`${server}:${port}`);
+  this.errorHandling();
 
   this.socket.on("connect", () => {
     this.status = "Connected!";
     this.connected = true;
 
-    this.errorHandling();
     this.idListener();
   });
 }
@@ -38,22 +41,7 @@ Net.prototype.connect = function(server, port) {
 Net.prototype.errorHandling = function() {
   this.socket.on("connect_error", e => {
     this.connected = false;
-    this.status = `Connection error: ${e.message}`;
-  });
-
-  this.socket.on("reconnect_error", (e) => {
-    this.connected = false;
-    this.status = `Failed to reconnect: ${e.message}`;
-  });
-
-  this.socket.on("reconnect_failed", (e) => {
-    this.connected = false;
-    this.status = `Failed to reconnect. Please try again later...`;
-  });
-
-  this.socket.on("reconnecting", (attempts) => {
-    this.connected = false;
-    this.status = `Attempting to reconnect: ${attempts} left`;
+    this.status = "Connection error, trying to reconnect...";
   });
 
   this.socket.on("reconnect", (attempts) => {
@@ -74,11 +62,16 @@ Net.prototype.idListener = function() {
     this.gameAreaListener();
     this.gameOverListener();
     this.foodListener();
-    this.pingServer();
-    this.pongListener();
+    this.powerUp();
 
     this.connected = true;
   });
+}
+
+Net.prototype.powerUp = function() {
+  this.socket.on("update_power_up", powerUp => {
+    this.controller.powerUp = powerUp;
+  })
 }
 
 Net.prototype.snakeListener = function() {

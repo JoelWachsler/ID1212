@@ -16,7 +16,6 @@ class ClientHandler {
     this.id = socket.id;
     console.log(`${this.id} has connected!`);
 
-    this.controller.gameController.createPlayer(this.id);
     this.sendIdToClient();
     this.registerSocketEvents();
 
@@ -31,7 +30,7 @@ class ClientHandler {
      */
   registerSocketEvents() {
     this.socket.on("update_movement", newDirection => this.updateMovement(newDirection));
-
+    this.socket.on("game_start", () => this.controller.gameController.createPlayer(this.id));
     this.socket.on("disconnect", () => this.disconnect());
   }
 

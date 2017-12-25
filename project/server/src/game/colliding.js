@@ -17,4 +17,16 @@ export default class Colliding {
     return point1.x === point2.x
         && point1.y === point2.y;
   }
+
+  /**
+   * Check if point1 is colliding with a point in point.
+   * 
+   * @param {Point} point1 
+   * @param {Point[]} points 
+   * @return {boolean} true if point1 is colliding with another point in points else false.
+   * @api protected
+   */
+  collidingMany(point1, points) {
+    return points.findIndex(point => this.colliding(point1, point)) !== -1;
+  }
 }

@@ -2,20 +2,22 @@
 import Point from "./point";
 import Colliding from "./colliding";
 import { SIZE } from "../common/constants";
+import Controller from "../controller/controller";
+import Food from "./food";
 
 // Different directions
-const UP    = 0;
+const UP = 0;
 const RIGHT = 1;
-const DOWN  = 2;
-const LEFT  = 3;
+const DOWN = 2;
+const LEFT = 3;
 
 /**
  * An instance of a snake.
  */
 export default class Snake extends Colliding {
   /**
-   * @param {string} id 
-   * @param {Point} point 
+   * @param {string} id
+   * @param {Point} point
    * @api public
    */
   constructor(id, point) {
@@ -32,13 +34,13 @@ export default class Snake extends Colliding {
 
   /**
    * Moves the snake head and body to the current direction.
-   * 
+   *
    * @api public
    */
   applyMovement() {
     // Add new body parts if there are any
     if (this.bodyPartsToAdd.length > 0)
-      this.body.push(this.bodyPartsToAdd.pop())
+      this.body.push(this.bodyPartsToAdd.pop());
 
     // Move the body parts
     for (let i = this.body.length - 1; i > 0; i--) {
@@ -90,7 +92,7 @@ export default class Snake extends Colliding {
 
   /**
    * Checks if the snake head is colliding with the provided point.
-   * 
+   *
    * @param {Point} point The points to check if the head is colliding with.
    * @api public
    */
@@ -99,22 +101,33 @@ export default class Snake extends Colliding {
   }
 
   /**
-   * Check if this snake is eating itself.
+   * Check if this snake is colliding with the provided piece of food.
    * 
+   * @param {Food[]} food
    * @api public
    */
-  isCollidingWithSelf() {
-    for (let i = 1; i < this.body.length; i++) {
-      if (super.colliding(this.head, this.body[i]))
-        return true
-    }
+  isCollidingWithFood(food) {
+    const foodPoints = food.map(food => food.point);
+    const collissionIndex = foodPoints.findIndex(food => this.isColliding(food));
 
-    return false
+    if (collissionIndex === -1) return;
+
+    food.splice(collissionIndex, 1);
+    this.addBodyPart();
+  }
+
+  /**
+   * Check if this snake is colliding with a wall.
+   *
+   * @api public
+   */
+  isCollidingWithPoints(points) {
+    return super.collidingMany(this.head, points);
   }
 
   /**
    * Adds a body part the next game tick.
-   * 
+   *
    * @api public
    */
   addBodyPart() {

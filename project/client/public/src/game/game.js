@@ -12,6 +12,14 @@ function Game(controller) {
  * Define setters and getters.
  */
 Game.prototype = {
+  get gameOverReason() {
+    if (this.gameOver === void 0) {
+      return "Press \"p\" to play!";
+    } else {
+      const { reason } = this.gameOver;
+      return `You ${reason}\nPress "p" to play again!`;
+    }
+  },
   get isPlaying() {
     return this.snake !== void(0);
   },
@@ -23,7 +31,7 @@ Game.prototype = {
     return this._snakes || [];
   },
   set food(food) {
-    this._food = food.map(food => new Food(food.point));
+    this._food = food.map(food => new Food(food.point, food.special));
   },
   get food() {
     return this._food || [];
@@ -36,6 +44,15 @@ Game.prototype = {
   },
   set gameOver(gameOver) {
     if (gameOver.id === this.id) this._gameOver = gameOver;
+  },
+  get gameOver() {
+    return this._gameOver;
+  },
+  set powerUp(powerUp) {
+    this._powerUp = powerUp;
+  },
+  get powerUp() {
+    return this._powerUp || [];
   },
   /**
    * Calculates the score of each player.

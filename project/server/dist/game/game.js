@@ -20,13 +20,13 @@ class Game {
     this.gameArea = [];
 
     // Define the game area.
-    this.gameAreaWidth = 1000;
-    this.gameAreaHeight = 1000;
+    this.gameAreaWidth = 500;
+    this.gameAreaHeight = 500;
 
     this.createGameArea();
 
     // Rate of which to update the game
-    this.fps = 5;
+    this.fps = 20;
 
     // Server fps
     setInterval(this.updateSnakes.bind(this), 1000 / this.fps);
@@ -34,8 +34,16 @@ class Game {
     // Let's spawn some random food if there's less than 100 on the board.
     // Check every 5 seconds.
     setInterval(() => {
-      if (this.food.length < 100) this.spawnFood();
-    }, 5000);
+      if (this.food.length < 1000) this.spawnFood(100);
+    }, 1000);
+
+    // Make a piece of food special
+    setInterval(() => {
+      for (let i = 0; i < 3; i++)
+      this.food[Math.floor(Math.random() * this.food.length) + 0].special = true;
+
+      this.updateFood();
+    }, 10000);
 
     // Initial spawn
     this.spawnFood();
@@ -88,36 +96,19 @@ class Game {
   /**
      * @api private
      */
-  spawnFood() {
+  spawnFood(maxFoodToSpawn) {
     // Spawn some random food
     // 200 attempts
-    for (let i = 0; i < 200; i++) {
+    for (let i = 0; i < maxFoodToSpawn; i++) {
       const newFood = new _food.default(this.randomPoint());
 
-
       // Do not spawn food on another piece of food.
-      const isCollidingFood = this.food.findIndex(food => food.isColliding(newFood.point));
-      if (isCollidingFood !== -1) continue;
+      if (newFood.isCollidingWithPoints(this.food.map(food => food.point))) continue;
 
       // Do not spawn food on a snake.
-      let isCollidingSnake = false;
-      for (let j = 0; j < this.snakes.length && !isCollidingSnake; j++) {
-        const snake = this.snakes[j];
-        if (newFood.isColliding(snake.head)) {
-          isCollidingSnake = true;
-          break;
-        }
-
-        for (let k = 0; k < snake.body.length; k++) {
-          const body = snake.body[k];
-          if (newFood.isColliding(body)) {
-            isCollidingSnake = true;
-            break;
-          }
-        }
-      }
-
-      if (isCollidingSnake) continue;
+      const snakePoints = this.snakes.map(snake => snake.body);
+      const snakePointsArray = [].concat.apply([], snakePoints);
+      if (newFood.isCollidingWithPoints(snakePointsArray)) continue;
 
       this.food.push(newFood);
     }
@@ -141,7 +132,7 @@ class Game {
   }
 
   /**
-     * Updates the game state for all players and pushes them.
+     * Updates the game state for all players.
      * 
      * @api private
      */
@@ -149,55 +140,47 @@ class Game {
     const foodLen = this.food.length;
 
     // Move all players
-    this.snakes.forEach(snake => {
-      snake.applyMovement();
+    this.snakes.forEach(snake => snake.applyMovement());
 
-      // Check if this player is colliding with a piece of food.
-      this.food = this.food.filter(food => {
-        const colliding = snake.isColliding(food.point);
+    // Check if this player is colliding with a piece of food.
+    this.snakes.forEach(snake => snake.isCollidingWithFood(this.food));
 
-        if (colliding) snake.addBodyPart();
-
-        return !colliding;
-      });
-    });
-
-    // Check if a snake is colliding with itself or a wall.
+    // Check if a snake is eating itself.
     this.snakes = this.snakes.filter(snake => {
-      const isEatingThemselves = snake.isCollidingWithSelf();
-      if (isEatingThemselves) {
-        this.controller.networkController.pushGameOver(snake.id, "ate yourself!");
-        return false;
-      }
+      const colliding = snake.isCollidingWithPoints(snake.body.slice(1));
 
-      for (let i = 0; i < this.gameArea.length; i++) {
-        if (snake.isColliding(this.gameArea[i])) {
-          this.controller.networkController.pushGameOver(snake.id, "crashed into a wall!");
+      if (colliding) this.controller.networkController.pushGameOver(snake.id, "ate yourself!");
 
-          return false;
-        }
-      }
-
-      return true;
+      return !colliding;
     });
 
-    // Check if a snake is eating another snake
-    for (let i = 0; i < this.snakes.length; i++) {
+    // Check if a snake is colliding a wall.
+    this.snakes = this.snakes.filter(snake => {
+      const colliding = snake.isCollidingWithPoints(this.gameArea);
+
+      if (colliding) this.controller.networkController.pushGameOver(snake.id, "crashed into a wall!");
+
+      return !colliding;
+    });
+
+    // Check if a snake is crashing into another snake.
+    // Going from the back so we don't mess anything up if a snake is removed.
+    for (let i = this.snakes.length - 1; i >= 0; i--) {
       const snake = this.snakes[i];
+      let match = false;
+      for (let j = 0; j < this.snakes.length && !match; j++) {
+        if (i === j) continue;
 
-      for (let j = 0; j < this.snakes.length; j++) {
-        if (i == j) continue;
+        const cmpSnake = this.snakes[j].body;
 
-        const anotherSnake = this.snakes[j];
-        for (let k = 1; k < anotherSnake.body.length; k++) {
-          if (snake.isColliding(anotherSnake.body[k])) {
-            const bodyPartsEaten = anotherSnake.body.splice(k);
-
-            // Add the pieces to the other snake
-            bodyPartsEaten.forEach(bodyPart => snake.addBodyPart());
-          }
+        if (snake.isCollidingWithPoints(cmpSnake)) {
+          match = true;
+          this.controller.networkController.pushGameOver(snake.id, "crashed into another snake!");
         }
       }
+
+      // Removing the snake who collided.
+      if (match) this.snakes.splice(i, 1);
     }
 
     // Only update the food if something happened to them
@@ -214,7 +197,8 @@ class Game {
      */
   updateMovement(id, newDirection) {
     const snake = this.snakes.find(snake => snake.id === id);
-    snake.changeMovement(newDirection);
+
+    if (snake !== void 0) snake.changeMovement(newDirection);
   }
 
   /**
@@ -224,7 +208,10 @@ class Game {
      * @api public
      */
   addPlayer(id) {
-    // Spawn a new snake on a free position.
+    // Check if the player is already playing.
+    if (this.snakes.find(snake => snake.id === id) !== void 0) return;
+
+    // Spawn a new snake on a free point.
     let okSpawn = false;
     while (!okSpawn) {
       const spawnPoint = this.randomPoint(
@@ -241,8 +228,7 @@ class Game {
         }
       }
 
-      if (okSpawn)
-      this.snakes.push(new _snake.default(id, spawnPoint));
+      if (okSpawn) this.snakes.push(new _snake.default(id, spawnPoint));
     }
   }
 

@@ -11,6 +11,9 @@ function Controller(server, port) {
  * Define getters and setters.
  */
 Controller.prototype = {
+  get gameOverReason() {
+    return this.game.gameOverReason;
+  },
   get isPlaying() {
     return this.game.isPlaying;
   },
@@ -55,5 +58,14 @@ Controller.prototype = {
   },
   get connectionStatus() {
     return this.net.status;
+  },
+  newGame() {
+    this.net.newGame();
+  },
+  set powerUp(powerUp) {
+    this.game.powerUp = powerUp;
+  },
+  get powerUp() {
+    return this.game.powerUp;
   }
 };

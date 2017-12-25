@@ -15,5 +15,8 @@ function keyPressed() {
     case LEFT_ARROW:
       this.controller.movement = LEFT;
       break;
+    case NEW_GAME_BTN:
+      this.controller.newGame();
+      break;
   }
 }

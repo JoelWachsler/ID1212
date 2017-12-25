@@ -1,7 +1,9 @@
 "use strict";Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;
 var _point = _interopRequireDefault(require("./point"));
 var _colliding = _interopRequireDefault(require("./colliding"));
-var _constants = require("../common/constants");function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };} // @ts-check
+var _constants = require("../common/constants");
+var _controller = _interopRequireDefault(require("../controller/controller"));
+var _food = _interopRequireDefault(require("./food"));function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };} // @ts-check
 
 // Different directions
 const UP = 0;
@@ -14,8 +16,8 @@ const LEFT = 3;
                  */
 class Snake extends _colliding.default {
   /**
-                                         * @param {string} id 
-                                         * @param {Point} point 
+                                         * @param {string} id
+                                         * @param {Point} point
                                          * @api public
                                          */
   constructor(id, point) {
@@ -32,7 +34,7 @@ class Snake extends _colliding.default {
 
   /**
      * Moves the snake head and body to the current direction.
-     * 
+     *
      * @api public
      */
   applyMovement() {
@@ -90,7 +92,7 @@ class Snake extends _colliding.default {
 
   /**
      * Checks if the snake head is colliding with the provided point.
-     * 
+     *
      * @param {Point} point The points to check if the head is colliding with.
      * @api public
      */
@@ -99,22 +101,33 @@ class Snake extends _colliding.default {
   }
 
   /**
-     * Check if this snake is eating itself.
+     * Check if this snake is colliding with the provided piece of food.
      * 
+     * @param {Food[]} food
      * @api public
      */
-  isCollidingWithSelf() {
-    for (let i = 1; i < this.body.length; i++) {
-      if (super.colliding(this.head, this.body[i]))
-      return true;
-    }
+  isCollidingWithFood(food) {
+    const foodPoints = food.map(food => food.point);
+    const collissionIndex = foodPoints.findIndex(food => this.isColliding(food));
 
-    return false;
+    if (collissionIndex === -1) return;
+
+    food.splice(collissionIndex, 1);
+    this.addBodyPart();
+  }
+
+  /**
+     * Check if this snake is colliding with a wall.
+     *
+     * @api public
+     */
+  isCollidingWithPoints(points) {
+    return super.collidingMany(this.head, points);
   }
 
   /**
      * Adds a body part the next game tick.
-     * 
+     *
      * @api public
      */
   addBodyPart() {

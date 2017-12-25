@@ -10,9 +10,10 @@ export default class Food extends Colliding {
    * @param {Point} point 
    * @api public
    */
-  constructor(point) {
+  constructor(point,) {
     super();
 
+    this.special = false;
     this.point = point;
   }
 
@@ -25,5 +26,15 @@ export default class Food extends Colliding {
    */
   isColliding(point) {
     return super.colliding(this.point, point);
+  }
+
+  /**
+   * Check if this object is colliding with other points.
+   * 
+   * @param {Point[]} points The points to check this point with.
+   * @api public
+   */
+  isCollidingWithPoints(points) {
+    return super.collidingMany(this.point, points);
   }
 }

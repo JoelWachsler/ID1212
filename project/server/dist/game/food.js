@@ -13,6 +13,7 @@ class Food extends _colliding.default {
   constructor(point) {
     super();
 
+    this.special = false;
     this.point = point;
   }
 
@@ -25,5 +26,15 @@ class Food extends _colliding.default {
      */
   isColliding(point) {
     return super.colliding(this.point, point);
+  }
+
+  /**
+     * Check if this object is colliding with other points.
+     * 
+     * @param {Point[]} points The points to check this point with.
+     * @api public
+     */
+  isCollidingWithPoints(points) {
+    return super.collidingMany(this.point, points);
   }}exports.default = Food;
 //# sourceMappingURL=food.js.map

@@ -1,9 +1,21 @@
 // @ts-check
+
+// fill overload
+function fillColor(color) {
+  if (typeof color === "number") {
+    fill(color);
+  } else {
+    const { R, G, B } = color;
+    fill(R, G, B);
+  }
+}
+
 /**
  * Renders the game.
  */
 function Renderer(controller) {
   this.controller = controller;
+  this.toggleLerp = false;
 
   createCanvas(width, height); // Create actual game area.
   frameRate(FPS); // Set fps
@@ -19,6 +31,7 @@ function Renderer(controller) {
     width = window.innerWidth;
     height = window.innerHeight;
     createCanvas(width, height);
+    textSize(FONT_SIZE);
   };
 
   // Update the FPS counter every 500 ms.
@@ -28,7 +41,7 @@ function Renderer(controller) {
 }
 
 Renderer.prototype.renderScore = function(scoreBoard) {
-  fill(TEXT_COLOR);
+  fillColor(TEXT_COLOR);
 
   // Draw the score in the top right corner.
   const { x, y } = this.lerpingPos;
@@ -54,15 +67,12 @@ Renderer.prototype.renderScore = function(scoreBoard) {
 }
 
 Renderer.prototype.renderSnakeHead = function (snakeHead) {
-  const { R, G, B } = SNAKE_HEAD_COLOR;
-
-  fill(R, G, B);
+  fillColor(SNAKE_HEAD_COLOR);
   rect(snakeHead.x, snakeHead.y, BLOCK_SIZE, BLOCK_SIZE);
 }
 
 Renderer.prototype.renderSnakeBody = function (snakeBody) {
-  const { R, G, B } = SNAKE_BODY_COLOR;
-  fill(R, B, G);
+  fillColor(SNAKE_BODY_COLOR);
 
   snakeBody.forEach(bodyPart => {
     rect(bodyPart.x, bodyPart.y, BLOCK_SIZE, BLOCK_SIZE);
@@ -75,28 +85,24 @@ Renderer.prototype.renderSnake = function(snake) {
 }
 
 Renderer.prototype.renderFood = function(food) {
-  const { R, G, B } = FOOD_COLOR;
-  fill(R, G, B);
+  fillColor(food.special ? SPECIAL_FOOD_COLOR : FOOD_COLOR);
 
   rect(food.x, food.y, BLOCK_SIZE, BLOCK_SIZE);
 }
 
-Renderer.prototype.centerSnake = function(snake) {
-  if (snake === null) return;
-
+Renderer.prototype.center = function({ x, y } = { x: 0, y: 0 }) {
   // Make the transition smoother by using a lerp.
   const vec = createVector(
-    -snake.body[0].x + width / 2,
-    -snake.body[0].y + height / 2
+    -x + width / 2,
+    -y + height / 2
   );
 
-  this.lerpingPos = p5.Vector.lerp(this.lerpingPos, vec, 0.1);
-  const { x, y } = this.lerpingPos;
-  translate(x, y);
+  this.lerpingPos = p5.Vector.lerp(this.lerpingPos, vec, 0.2);
+  translate(this.lerpingPos.x, this.lerpingPos.y);
 }
 
 Renderer.prototype.renderFps = function(fps, { x, y }) {
-  fill(TEXT_COLOR);
+  fillColor(TEXT_COLOR);
 
   // Draw the framerate in the top left corner.
   text(`FPS: ${fps}`, -x, -y + FONT_SIZE);
@@ -108,20 +114,34 @@ Renderer.prototype.renderFps = function(fps, { x, y }) {
  * @param {string} message
  */
 Renderer.prototype.renderMessage = function(message) {
-  fill(TEXT_COLOR);
+  fillColor(TEXT_COLOR);
 
-  const { x, y } = this.lerpingPos;
-  text(message,
-    -x + width / 2 - message.length * FONT_SIZE / 4,
-    -y + height / 2 - BLOCK_SIZE
-  );
+  const splitMsg = message.split("\n");
+  let counter = -splitMsg.length / 2; // Vertical center
+  splitMsg.forEach(msg => {
+    text(msg, -msg.length * FONT_SIZE / 4, counter++ * FONT_SIZE);
+  });
 }
 
 Renderer.prototype.renderGameArea = function(gameArea) {
-  fill(101, 73, 86);
+  fillColor(GAME_AREA_COLOR);
 
   gameArea.blocks.forEach(block => {
     rect(block.x, block.y, BLOCK_SIZE, BLOCK_SIZE);
+  });
+}
+
+Renderer.prototype.renderPowerUps = function(powerUps) {
+  powerUps.forEach(power => {
+    switch (power) {
+      case "random_colors":
+        SNAKE_BODY_COLOR = {
+          R: Math.floor(Math.random() * 255) + 0,
+          G: Math.floor(Math.random() * 255) + 0,
+          B: Math.floor(Math.random() * 255) + 0,
+        }
+        break;
+    }
   });
 }
 
@@ -133,6 +153,7 @@ Renderer.prototype.render = function() {
   background(R, G, B); // Background color
 
   if (!this.controller.connected) {
+    this.center();
     this.renderMessage(this.controller.connectionStatus);
 
     return;
@@ -144,17 +165,22 @@ Renderer.prototype.render = function() {
     food,
     gameArea,
     scoreBoard,
-    isPlaying
+    isPlaying,
+    gameOverReason
   } = this.controller;
 
-  if (isPlaying) this.centerSnake(snake);
+  if (isPlaying)  this.center(snake.head);
+  else            this.center();
 
   snakes.forEach(snake => this.renderSnake(snake));
   food.forEach(food => this.renderFood(food));
-  if (gameArea != null) this.renderGameArea(gameArea);
+  this.renderGameArea(gameArea);
 
   this.renderScore(scoreBoard);
   this.renderFps(this.fps, this.lerpingPos);
+  this.renderPowerUps(this.controller.powerUp);
+
+  if (!isPlaying) this.renderMessage(gameOverReason);
 }
 
 /**
