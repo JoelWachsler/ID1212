@@ -119,6 +119,11 @@ function renderScore() {
   })
 }
 
+function renderStaticMessage(message) {
+  textSize(fontSize);
+  fill(255);
+}
+
 /**
  * Drawing loop.
  */

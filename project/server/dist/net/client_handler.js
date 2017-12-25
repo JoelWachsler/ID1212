@@ -1,66 +1,66 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+"use strict";Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;
+var _controller = _interopRequireDefault(require("../controller/controller"));function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };} // @ts-check
 
 /**
  * Handles communication to a client.
  */
-var ClientHandler = function () {
-  function ClientHandler(controller, socket) {
-    _classCallCheck(this, ClientHandler);
-
+class ClientHandler {
+  /**
+                      * @param {Controller} controller 
+                      * @param {*} socket 
+                      * @api public
+                      */
+  constructor(controller, socket) {
     this.controller = controller;
     this.socket = socket;
     this.id = socket.id;
-    console.log(this.id + " has connected!");
+    console.log(`${this.id} has connected!`);
 
     this.controller.gameController.createPlayer(this.id);
-    this.sendIdToClient(this.id);
+    this.sendIdToClient();
     this.registerSocketEvents();
 
     // Send initial data to this client only
     this.controller.networkController.pushInitialData(socket);
   }
 
-  _createClass(ClientHandler, [{
-    key: "registerSocketEvents",
-    value: function registerSocketEvents() {
-      var _this = this;
+  /**
+     * Registers various events to listen to from the client.
+     * 
+     * @api private
+     */
+  registerSocketEvents() {
+    this.socket.on("update_movement", newDirection => this.updateMovement(newDirection));
 
-      this.socket.on("update_movement", function (newDirection) {
-        return _this.updateMovement(newDirection);
-      });
+    this.socket.on("disconnect", () => this.disconnect());
+  }
 
-      this.socket.on("disconnect", function () {
-        return _this.disconnect();
-      });
-    }
-  }, {
-    key: "sendIdToClient",
-    value: function sendIdToClient() {
-      this.socket.emit("id", this.id);
-    }
-  }, {
-    key: "updateMovement",
-    value: function updateMovement(newDirection) {
-      this.controller.gameController.updateMovement(this.id, newDirection);
-    }
-  }, {
-    key: "disconnect",
-    value: function disconnect() {
-      console.log(this.id + " has disconnected!");
-      this.controller.gameController.removePlayer(this.id);
-    }
-  }]);
+  /**
+     * Sends the clients id to them.
+     * 
+     * @api private
+     */
+  sendIdToClient() {
+    this.socket.emit("id", this.id);
+  }
 
-  return ClientHandler;
-}();
+  /**
+     * Updates the movement of the current player.
+     * 
+     * @param {number} newDirection 
+     * @api private
+     */
+  updateMovement(newDirection) {
+    this.controller.gameController.updateMovement(this.id, newDirection);
+  }
 
-exports.default = ClientHandler;
+  /**
+     * Removes the player from the game if they disconnect.
+     * 
+     * @api private
+     */
+  disconnect() {
+    console.log(`${this.id} has disconnected!`);
+    this.controller.gameController.removePlayer(this.id);
+  }}exports.default = ClientHandler;
 //# sourceMappingURL=client_handler.js.map

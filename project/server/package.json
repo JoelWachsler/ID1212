@@ -6,8 +6,8 @@
   "scripts": {
     "prestart": "yarn run -s build",
     "start": "node dist",
-    "dev": "nodemon -w src --exec babel-node src --source-maps --presets env,stage-0",
-    "build": "babel src -s -D -d dist --presets env,stage-0",
+    "dev": "nodemon -w src --exec babel-node src --source-maps",
+    "build": "babel src -s -D -d dist",
     "test": "eslint src"
   },
   "eslintConfig": {
@@ -31,11 +31,11 @@
     "socket.io": "^2.0.4"
   },
   "devDependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-core": "^6.26.0",
-    "babel-preset-env": "^1.6.1",
-    "babel-preset-stage-0": "^6.24.1",
-    "eslint": "^4.13.1",
-    "nodemon": "^1.13.0"
+    "@babel/cli": "^7.0.0-beta.35",
+    "@babel/core": "^7.0.0-beta.35",
+    "@babel/node": "^7.0.0-beta.35",
+    "@babel/preset-env": "^7.0.0-beta.35",
+    "eslint": "^4.14.0",
+    "nodemon": "^1.14.3"
   }
 }

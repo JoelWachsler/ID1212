@@ -1,29 +1,17 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = connectionHandler;
-
-var _client_handler = require("./client_handler");
-
-var _client_handler2 = _interopRequireDefault(_client_handler);
-
-var _controller = require("../controller/controller");
-
-var _controller2 = _interopRequireDefault(_controller);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+"use strict";Object.defineProperty(exports, "__esModule", { value: true });exports.default = connectionHandler;
+var _client_handler = _interopRequireDefault(require("./client_handler"));
+var _controller = _interopRequireDefault(require("../controller/controller"));function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };} // @ts-check
 
 /**
  * Handles connections and disconnections.
+ * 
+ * @param {*} io 
+ * @api public
  */
 function connectionHandler(io) {
-  var controller = new _controller2.default(io);
+  const controller = new _controller.default(io);
 
   // Create a separate client handler for each client.
-  io.on("connect", function (socket) {
-    return new _client_handler2.default(controller, socket);
-  });
+  io.on("connect", socket => new _client_handler.default(controller, socket));
 }
 //# sourceMappingURL=connection_handler.js.map

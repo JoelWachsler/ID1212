@@ -1,0 +1,1 @@
+{"version":3,"sources":["../../src/common/constants.js"],"names":["SIZE"],"mappings":"kGAAA;;AAEA;AACO,MAAMA,OAAO,EAAb,C","file":"constants.js","sourcesContent":["// @ts-check\n\n// Snake block size\nexport const SIZE = 25;\n"]}

@@ -1,0 +1,10 @@
+{
+  "retainLines": true,
+  "presets": [
+    ["@babel/env", {
+      "targets": {
+        "node": "current"
+      }
+    }]
+  ]
+}
