@@ -62,10 +62,4 @@ Controller.prototype = {
   newGame() {
     this.net.newGame();
   },
-  set powerUp(powerUp) {
-    this.game.powerUp = powerUp;
-  },
-  get powerUp() {
-    return this.game.powerUp;
-  }
 };

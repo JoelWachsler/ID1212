@@ -20,13 +20,13 @@ class Game {
     this.gameArea = [];
 
     // Define the game area.
-    this.gameAreaWidth = 500;
-    this.gameAreaHeight = 500;
+    this.gameAreaWidth = 1000;
+    this.gameAreaHeight = 1000;
 
     this.createGameArea();
 
     // Rate of which to update the game
-    this.fps = 20;
+    this.fps = 10;
 
     // Server fps
     setInterval(this.updateSnakes.bind(this), 1000 / this.fps);
@@ -36,14 +36,6 @@ class Game {
     setInterval(() => {
       if (this.food.length < 1000) this.spawnFood(100);
     }, 1000);
-
-    // Make a piece of food special
-    setInterval(() => {
-      for (let i = 0; i < 3; i++)
-      this.food[Math.floor(Math.random() * this.food.length) + 0].special = true;
-
-      this.updateFood();
-    }, 10000);
 
     // Initial spawn
     this.spawnFood();
@@ -143,7 +135,11 @@ class Game {
     this.snakes.forEach(snake => snake.applyMovement());
 
     // Check if this player is colliding with a piece of food.
-    this.snakes.forEach(snake => snake.isCollidingWithFood(this.food));
+    this.snakes.forEach(snake => {
+      const colliding = snake.isCollidingWithFood(this.food);
+
+      if (!colliding) return;
+    });
 
     // Check if a snake is eating itself.
     this.snakes = this.snakes.filter(snake => {

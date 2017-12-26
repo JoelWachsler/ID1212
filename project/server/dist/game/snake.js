@@ -112,8 +112,8 @@ class Snake extends _colliding.default {
 
     if (collissionIndex === -1) return;
 
-    food.splice(collissionIndex, 1);
     this.addBodyPart();
+    food.splice(collissionIndex, 1);
   }
 
   /**

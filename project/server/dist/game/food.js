@@ -13,7 +13,6 @@ class Food extends _colliding.default {
   constructor(point) {
     super();
 
-    this.special = false;
     this.point = point;
   }
 

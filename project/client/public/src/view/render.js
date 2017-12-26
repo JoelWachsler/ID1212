@@ -85,7 +85,7 @@ Renderer.prototype.renderSnake = function(snake) {
 }
 
 Renderer.prototype.renderFood = function(food) {
-  fillColor(food.special ? SPECIAL_FOOD_COLOR : FOOD_COLOR);
+  fillColor(FOOD_COLOR);
 
   rect(food.x, food.y, BLOCK_SIZE, BLOCK_SIZE);
 }
@@ -131,20 +131,6 @@ Renderer.prototype.renderGameArea = function(gameArea) {
   });
 }
 
-Renderer.prototype.renderPowerUps = function(powerUps) {
-  powerUps.forEach(power => {
-    switch (power) {
-      case "random_colors":
-        SNAKE_BODY_COLOR = {
-          R: Math.floor(Math.random() * 255) + 0,
-          G: Math.floor(Math.random() * 255) + 0,
-          B: Math.floor(Math.random() * 255) + 0,
-        }
-        break;
-    }
-  });
-}
-
 /**
  * Centers the snake and renders all game components.
  */
@@ -178,7 +164,6 @@ Renderer.prototype.render = function() {
 
   this.renderScore(scoreBoard);
   this.renderFps(this.fps, this.lerpingPos);
-  this.renderPowerUps(this.controller.powerUp);
 
   if (!isPlaying) this.renderMessage(gameOverReason);
 }

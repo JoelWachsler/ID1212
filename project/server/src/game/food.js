@@ -10,10 +10,9 @@ export default class Food extends Colliding {
    * @param {Point} point 
    * @api public
    */
-  constructor(point,) {
+  constructor(point) {
     super();
 
-    this.special = false;
     this.point = point;
   }
 

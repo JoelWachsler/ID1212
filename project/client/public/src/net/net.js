@@ -62,16 +62,9 @@ Net.prototype.idListener = function() {
     this.gameAreaListener();
     this.gameOverListener();
     this.foodListener();
-    this.powerUp();
 
     this.connected = true;
   });
-}
-
-Net.prototype.powerUp = function() {
-  this.socket.on("update_power_up", powerUp => {
-    this.controller.powerUp = powerUp;
-  })
 }
 
 Net.prototype.snakeListener = function() {

@@ -3,7 +3,7 @@ import {
   pushSnakes,
   pushFood,
   pushGameArea,
-  pushGameOver
+  pushGameOver,
 } from "../net/game_broadcast_handler";
 import Controller from "./controller";
 import Point from "../game/point";

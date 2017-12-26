@@ -59,6 +59,7 @@ Game.prototype = {
    */
   get scoreBoard() {
     let snakeCounter = 1;
+
     return this.snakes
       .map(snake => {
         return {
